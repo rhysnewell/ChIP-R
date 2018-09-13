@@ -11,9 +11,9 @@ Install
 
 To install ChIA-PET2:
 
-  git clone '''The Repo'''
+  git clone git@github.com:rhysnewell/ChIP-rep.git
   
-and add the src folder of the repo to your pythonpath variable in your .bashrc profile
+We recommend you add the src folder to your pythonpath variable in your .bashrc profile
 
 
 Usage
@@ -86,9 +86,9 @@ Important result files:
 
 prefixname.bed file has 10 columns. The output follows the standard peak format for bed files, with the addition of a 10th column that specifies the ranks of the peaks that produced this possible peak. See the toy example below.
 
-|chr |start|end  |name |score |strand  |signalValue |p-value |q-value|ranks|
-|----|-----|-----|----|------|-----|------|------|------|------|----|---|----|
-|chr1|9118 |10409|T3_peak_87823|	491|	.	|1.000000	| 0.113938|0.712353	| 269086.0,180821.0|
+|chr |start|end  |name |score |strand  |signalValue |p-value |q-value|
+|----|-----|-----|----|------|-----|------|------|------|
+|chr1|9118 |10409|T3_peak_87823|	491|	.	|1.000000	| 0.113938|0.712353	|
 
 
 Citation

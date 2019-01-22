@@ -16,7 +16,6 @@ import random
 import copy
 import multipletesting
 import scipy.stats
-import matplotlib.pyplot as plt
 
 
 def rankmetric(elem):

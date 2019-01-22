@@ -9,49 +9,7 @@ import petprocessing
 class RankProdAnalysis(object):
 
     def __init__(self):
-        parser = argparse.ArgumentParser(
-        description="Performs rank product analysis on ChIP data to either verify"
-                                                     " reproducible ChIP-seq peaks or ChIA-PET interactions",
-        usage='''REP <command> [<args>]
-        chiprep    Rank Product reproducibility analysis for ChIP-seq
-        chiarep    Rank Product reproducibility analysis for ChIA-PET
-        ''')
-        parser.add_argument('command', help='Subcommand to run')
-        args = parser.parse_args(sys.argv[1:2])
-        if not hasattr(self, args.command):
-            print('Unrecognized command')
-            parser.print_help()
-            exit(1)
-        getattr(self, args.command)()
-
-    def run_1(self, args):
-        for i in args.input:
-            print(str(i.name))
-
-        print('Processing BedFiles...')
-        bedfs = [bed.BedFile(str(i.name), 'Peaks') for i in args.input]
-
-        RankProd.performrankprod(bedfs,
-                                 args.minentries,
-                                 args.rankmethod,
-                                 'all',
-                                 args.duphandling,
-                                 args.random_seed,
-                                 args.alpha,
-                                 args.output)
-
-    def run_2(self, args):
-        petprocessing.ChIAreproducibility(args.input1,
-                                     args.input2,
-                                     args.minentries,
-                                     args.rankmethod,
-                                     args.RPthreshold,
-                                     args.alpha,
-                                     args.output)
-
-
-    def chiprep(self):
-        parser = argparse.ArgumentParser(prog='chiprep',
+        parser = argparse.ArgumentParser(prog='ChIP-R',
                                          description="Combine multiple ChIP-seq files and return a union of all peak "
                                                      "locations and a set confident, reproducible peaks as determined by "
                                                      "rank product analysis")
@@ -110,63 +68,25 @@ class RankProdAnalysis(object):
                             default=0.05,
                             type=float,
                             required=False)
-        args = parser.parse_args(sys.argv[2:])
+        args = parser.parse_args(sys.argv[1:])
         self.run_1(args)
 
-    def chiarep(self):
-        parser = argparse.ArgumentParser(prog='chiarep',
-                                         description="Combine multiple ChIA-seq files and return a union of all peak "
-                                                     "locations and a set confident, reproducible peaks as determined by "
-                                                     "rank product analysis")
-        parser.add_argument("-input1",
-                            help="ChIA-PET input files.",
-                            dest="input",
-                            type=argparse.FileType('r'),
-                            nargs='+',
-                            required=True)
-        parser.add_argument("-input2",
-                            help="ChIP-seq input files. These files must be in either narrowPeak, broadPeak, "
-                                 "or regionPeak format",
-                            dest="input",
-                            type=argparse.FileType('r'),
-                            nargs='+',
-                            required=True)
-        parser.add_argument("-output",
-                            help="ChIA-PET output filename",
-                            dest="output",
-                            type=str,
-                            required=False)
-        parser.add_argument("-minentries",
-                            help="The minimum peaks between replicates required to form an "
-                                 "intersection of the peaks \n"
-                                 "Default: 1",
-                            dest="minentries",
-                            type=int,
-                            required=False)
-        parser.add_argument("-rankmethod",
-                            help="The ranking method used to rank peaks within replicates. "
-                                 "Options: 'signalvalue', 'pvalue', 'qvalue'. \n"
-                                 "Default: signalvalue",
-                            dest="rank",
-                            type=str,
-                            required=False)
-        parser.add_argument("-RPthreshold",
-                            help="Specifies which peak threshold group to use to verify the ChIA-PET interactions "
-                                 "\n"
-                                 "Options: 'alpha', 'binom', 'all' \n"
-                                 "Default: 'all'",
-                            dest="threshold",
-                            type=str,
-                            required=False)
-        parser.add_argument("-alpha",
-                            help="Alpha specifies the user cut-off value for set of reproducible peaks and interactions"
-                                 "\n"
-                                 "default: 0.05",
-                            dest="alpha",
-                            type=float,
-                            required=False)
-        args = parser.parse_args(sys.argv[2:])
-        self.run_2(args)
+    def run_1(self, args):
+        for i in args.input:
+            print(str(i.name))
+
+        print('Processing BedFiles...')
+        bedfs = [bed.BedFile(str(i.name), 'Peaks') for i in args.input]
+
+        RankProd.performrankprod(bedfs,
+                                 args.minentries,
+                                 args.rankmethod,
+                                 'all',
+                                 args.duphandling,
+                                 args.random_seed,
+                                 args.alpha,
+                                 args.output)
+
 
 
 if __name__ == "__main__":

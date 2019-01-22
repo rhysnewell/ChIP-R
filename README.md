@@ -9,9 +9,9 @@ Install
 - Numpy
 - Scipy
 
-To install ChIA-PET2:
+To install ChIP-R:
 
-  git clone git@github.com:rhysnewell/ChIP-rep.git
+  git clone git@github.com:rhysnewell/ChIP-R.git
   
 We recommend you add the src folder to your pythonpath variable in your .bashrc profile
 
@@ -19,9 +19,9 @@ We recommend you add the src folder to your pythonpath variable in your .bashrc 
 Usage
 -----
 
-In the command line, type in **' REP.py chiprep -h '** for detailed usage.
+In the command line, type in **'python3 ChIP-R.py -h '** for detailed usage.
 
-    $ REP.py chiprep -h
+    $ python3 ChIP-R.py -h
     
     usage: chiprep [-h] -input INPUT [INPUT ...] [-output OUTPUT]
                  [-minentries MINENTRIES] [-rankmethod RANKMETHOD]
@@ -71,7 +71,7 @@ In the command line, type in **' REP.py chiprep -h '** for detailed usage.
 
 Example
 ------
-    $ REP.py chiprep -i input_prefix1.bed input_prefix2.bed input_prefix3.bed input_prefix4.bed -minentries 1 -o output_prefix   
+    $ python3 ChIP-R.py -i input_prefix1.bed input_prefix2.bed input_prefix3.bed input_prefix4.bed -minentries 1 -o output_prefix   
 
 Output
 ------

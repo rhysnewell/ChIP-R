@@ -1,6 +1,7 @@
-Rank Product Analysis
+ChIP-R ("chipper")
 =========
 
+ChIP-R uses an adaptation of the rank product statistic to assess the reproducibility of ChIP-seq peaks by incorporating information from multiple ChIP-seq replicates and "fragmenting" peak locations to better combine the information present across the replicates.
 
 Install
 -------

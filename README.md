@@ -101,6 +101,6 @@ Citation
 Contact
 -------
 
-Author: Rhys Newell
+Authors: Rhys Newell, Alexandra Essebier, Michael Piper, Mikael Boden
 
-Email:  rhys.newell(AT)uq.net.au
+Contact:  rhys.newell(AT)uq.net.au

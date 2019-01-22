@@ -13,20 +13,20 @@ class RankProdAnalysis(object):
                                          description="Combine multiple ChIP-seq files and return a union of all peak "
                                                      "locations and a set confident, reproducible peaks as determined by "
                                                      "rank product analysis")
-        parser.add_argument("-input",
+        parser.add_argument("-i", "--input",
                             help="ChIP-seq input files. These files must be in either narrowPeak, broadPeak, "
-                                 "or regionPeak format",
+                                 "or regionPeak format. Multiple inputs a separeted by a single space",
                             dest="input",
                             type=argparse.FileType('r'),
                             nargs='+',
                             required=True)
-        parser.add_argument("-output",
+        parser.add_argument("-o", "--output",
                             help="ChIP-seq output filename",
                             dest="output",
                             type=str,
                             default="rankprod",
                             required=False)
-        parser.add_argument("-minentries",
+        parser.add_argument("-m", "--minentries",
                             help="The minimum peaks between replicates required to form an "
                                  "intersection of the peaks \n"
                                  "Default: 1",
@@ -34,7 +34,7 @@ class RankProdAnalysis(object):
                             default=1,
                             type=int,
                             required=False)
-        parser.add_argument("-rankmethod",
+        parser.add_argument("--rankmethod",
                             help="The ranking method used to rank peaks within replicates. "
                                  "Options: 'signalvalue', 'pvalue', 'qvalue'. \n"
                                  "Default: signalvalue",
@@ -42,7 +42,7 @@ class RankProdAnalysis(object):
                             default='pvalue',
                             type=str,
                             required=False)
-        parser.add_argument("-duphandling",
+        parser.add_argument("--duphandling",
                             help="Specifies how to handle entries that are ranked equally within a replicate "
                                  "Can either take the 'average' ranks or a 'random' rearrangement of the ordinal ranks \n"
                                  "Options: 'average', 'random' \n"
@@ -51,7 +51,7 @@ class RankProdAnalysis(object):
                             default='average',
                             type=str,
                             required=False)
-        parser.add_argument("-randomseed",
+        parser.add_argument("--seed",
                             help="Specify a seed to be used in conjunction with the 'random' option for -duphandling "
                                  "Must be between 0 and 1 \n"
                                  "default: 0.5",
@@ -59,7 +59,7 @@ class RankProdAnalysis(object):
                             default=0.5,
                             type=float,
                             required=False)
-        parser.add_argument("-alpha",
+        parser.add_argument("-a","--alpha",
                             help="Alpha specifies the user cut-off value for set of reproducible peaks "
                                  "The analysis will still produce results including peaks within the threshold calculated"
                                  "using the binomial method \n"

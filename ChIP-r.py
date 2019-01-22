@@ -4,6 +4,7 @@ import argparse
 import sys
 import RankProd
 import bed
+import petprocessing
 
 class RankProdAnalysis(object):
 
@@ -28,7 +29,7 @@ class RankProdAnalysis(object):
             print(str(i.name))
 
         print('Processing BedFiles...')
-        bedfs = [bed.BedFile(str(i.name), 'IDR') for i in args.input]
+        bedfs = [bed.BedFile(str(i.name), 'Peaks') for i in args.input]
 
         RankProd.performrankprod(bedfs,
                                  args.minentries,
@@ -40,7 +41,7 @@ class RankProdAnalysis(object):
                                  args.output)
 
     def run_2(self, args):
-        RankProd.ChIAreproducibility(args.input1,
+        petprocessing.ChIAreproducibility(args.input1,
                                      args.input2,
                                      args.minentries,
                                      args.rankmethod,

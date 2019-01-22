@@ -119,250 +119,6 @@ def reduceEntries(bedf, metric, specifyMax):
 
     return newbedf
 
-
-def verifyChIAPeaks(chiaData, chipData, filename, alpha):
-    listinters = []
-    PETs = []
-    probs = []
-    inters = {}
-    PETgroups = {}
-    prs = []
-    fdr = []
-    RP = []
-    if getattr(chiaData, 'format') == 'BED12':
-        chiaData = bed.BED12toBEDPE(chiaData)
-    for link in chiaData:
-        if link.PETs <= 2:
-            continue
-        o1 = chipData.getOverlap(link.partner1)
-        o2 = chipData.getOverlap(link.partner2)
-        try:
-            PETgroups[link.PETs].append(link)
-        except KeyError:
-            PETgroups[link.PETs] = [link]
-
-        try:
-            if len(o1) > 0 and len(o2) > 0:
-                for peaks1, peaks2 in zip(o1, o2):
-                    # Create entries in dictionary with peaks as support
-                    try:
-
-                        inters[link].append([peaks1, peaks2])
-                    except KeyError:
-
-                        inters[link] = [peaks1, peaks2]
-        except TypeError:
-            continue
-    dists = []
-    for k, v in inters.items():
-        pvals = []
-        rs = []
-        # if k.PETs <= 1:
-        #     continue
-        # kvals = []
-        for peak in v:
-            try:
-                pvals.append(peak.pValue)
-                rs.append(peak.signalValue)
-
-                # combined = scipy.stats.combine_pvalues([peak1.pValue, peak2.pValue], 'fisher')
-                # pvals.append(combined[1])
-            except AttributeError:
-                if type(peak) == 'list':
-                    for p in peak:
-                        try:
-                            pvals.append(p.pValue)
-                            rs.append(peak.signalValue)
-                        except AttributeError:
-                            continue
-                else:
-                    continue
-        if len(pvals) != 0:
-            combined = scipy.stats.combine_pvalues(pvals, 'stouffer', rs)
-            probs.append(combined[1])
-            # rs = iterflatten(rs)
-            # RP.append(rs)
-            listinters.append(k)
-            PETs.append(k.PETs)
-            dists.append(k.getDistance())
-
-    # probcor = multipletesting.fdrcorrection(probs, alpha)
-    PETs, listinters, probcor, dists = (list(x) for x in zip(*sorted(zip(PETs, listinters, probs, dists),
-                                                              key=lambda pair: pair[0], reverse=True)))
-
-    bins = np.arange(min(dists), max(dists), max(dists)/50, dtype=int)
-    brobs = []
-    ints = []
-    pets2 = []
-    ainters = []
-    tags = 0
-    # for bin in range(1, 50):
-    #     pets = []
-    #     lints = []
-    #     ps = []
-    #     ds = []
-    #     # rp = []
-    #     for idx, j in enumerate(np.digitize(dists, bins)):
-    #         if j == bin:
-    #             pets.append(PETs[idx])
-    #             lints.append(listinters[idx])
-    #             ps.append(probcor[idx])
-    #             ds.append(dists[idx])
-                # rp.append(RP[idx])
-        # try:
-        #     pets, lints, ps, ds, rp = (list(x) for x in zip(*sorted(zip(pets, lints, ps, ds, rp),
-        #                                                                  key=lambda pair: pair[0], reverse=True)))
-        # except ValueError:
-        #     continue
-        #
-    n = len(RP)
-        # k = sum(pets)
-    t = sum(PETs)
-        # brobs = []
-    tags = 0
-        # RPranks = scipy.stats.rankdata(RP)
-        # mRPrank = max(RPranks)
-        # RPranks1 = [mRPrank+1 - x for x in RPranks]
-        # probranks = scipy.stats.rankdata(probcor)
-        # mprobs = max(probranks)
-        # probranks1 = [mprobs+1 -x for x in probranks]
-        # # distranks = scipy.stats.rankdata(dists)
-        # # mdist = max(distranks)
-        # # distranks1 = [mdist+1 - x for x in distranks]
-        # # PETranks1 = scipy.stats.rankdata(PETs)
-        # # mpet = max(PETranks1)
-        # rankprods = []
-        # # PETranks = [mpet + 1 - x for x in PETranks1]
-        # PETdists = [x/y for x,y in zip(dists, PETs)]
-        # PDranks = scipy.stats.rankdata(PETdists)
-        # mPD = max(PDranks)
-        # PDranks1 = [mPD+1 - x for x in PDranks]
-        # for rank in range(len(RP)):
-        #     print(PDranks[rank], PETdists[rank])
-        #     try:
-        #         rankprods.append(PDranks1[rank]*RPranks1[rank])
-        #         pets2.append(PETs[rank])
-        #     except IndexError:
-        #         continue
-        # print(rankprods)
-        # rpb = rankprodbounds(rankprods, len(rankprods), 2, 'geometric')
-        # for p in rpb:
-        #     brobs.append(p)
-        # print(rpb)
-        # mRP = max(rankprods)
-        # mPETs = max(PETs)
-        # mdists = max(dists)
-    for i, p in enumerate(zip(probcor, PETs)):
-        tags += p[1]
-        b = scipy.stats.binom.cdf(tags, t, 1-p[0])
-        # b2 = scipy.stats.combine_pvalues([b, [i]], 'stouffer', [(mPETs-PETs[i])/mPETs, (mRP-rankprods[i])/mRP])
-        print(p[0], p[1])
-        brobs.append(b)
-        pets2.append(p[1])
-        ints.append(listinters[i])
-    #     # secinters = []
-    #     # secPETs = []
-    #     # secprobcor = []
-    #     print(rpb)
-    # ints, probs = (list(x) for x in zip(*sorted(zip(ainters, probs), key=lambda pair: pair[1], reverse=False)))
-    corrected = multipletesting.fdrcorrection(brobs, alpha)
-    thresh = thresholdCalc(brobs)
-    try:
-        binomAlpha = round(min(thresh[2]), 3)
-        if binomAlpha==0:
-            binomAlpha=0.05
-    except ValueError:
-        binomAlpha = 0.05
-    # brobs.append(rpb)
-    print(binomAlpha)
-    for i, p in zip(ints, corrected[1]):
-        i.addOption(pValue=p)
-        prs.append(p)
-        ainters.append(i)
-        # print(p, binomAlpha)
-        if p <= 0.05:
-            if p == 0:
-                i.addOption(pValue=0.00000000000001)
-            fdr.append(i)
-
-
-                # else:
-                #     secinters.append(i)
-                #     secPETs.append(pet)
-                #     secprobcor.append(pc)
-
-    # n = sum(secPETs)
-    # brobs = []
-    # tags = 0
-    # for i, p in zip(secPETs, secprobcor):
-    #     tags += i
-    #     b = scipy.stats.binom.cdf(tags, n, p)
-    #     brobs.append(b)
-    #
-    # corrected = multipletesting.fdrcorrection(brobs, alpha)
-    # for i, p in zip(listinters, brobs):
-    #     i.addOption(pValue=p)
-    #     if p <= alpha:
-    #         if p == 0:
-    #             i.addOption(pValue=0.00000000000001)
-    #         fdr.append(i)
-
-
-    fdr = bed.BedFile(fdr, "BEDPE")
-    allinters = bed.BedFile(ainters, "BEDPE")
-    print(len(fdr), 'Interactions pass FDR threshold')
-    bed.writeBedFile(allinters, filename + '.bedpe', format='BEDPE')
-    bed.writeBedFile(fdr, filename+'.bedpe', format="BEDPE")
-    intersBED12 = bed.BEDPEtoBED12(allinters)
-    bed.writeBedFile(intersBED12, filename + '.bed', format='BED12')
-
-    return ainters, fdr, allinters, PETs, dists, brobs, corrected[1]
-
-
-'''
-joinChIA:
-Helper function that puts all the interactions from multiple bedPE files in to one file
-'''
-
-
-def joinChIA(chia):
-    interactions = []
-    for rep in chia:
-        for intr in rep:
-            interactions.append(intr)
-
-    pe = bed.BedFile(interactions, 'bedpe')
-    return pe
-
-
-def ChIAreproducibility(chia, chip, minentries=None, rank='signalValue', threshold='all',
-                        alpha=0.05, filename='NA'):
-    if minentries is None:
-        minentries = len(chip)
-    if len(chia) == 1 and len(chip) == 1:
-        return verifyChIAPeaks(chia[0], chip[0], filename=filename, alpha=alpha)
-    else:
-        try:  # Check to see if multiple chiapet files are entered
-            chia[0]
-            inters = joinChIA(chia)
-        except TypeError:
-            inters = chia
-        performrankprod(chip, minentries=minentries, rankmethod=rank, alpha=alpha, filename=filename+'.bed')
-        if threshold == 'binom':
-            RP = bed.BedFile('T2_'+filename+'.bed', 'Peaks')
-
-            return verifyChIAPeaks(inters, RP, filename=filename, alpha=alpha)
-        elif threshold == 'alpha':
-            RP = bed.BedFile('T1_'+filename+'.bed', 'Peaks')
-            return verifyChIAPeaks(inters, RP, filename=filename, alpha=alpha)
-
-        elif threshold == 'all':
-            RP = bed.BedFile('ALL_'+filename+'.bed', 'Peaks')
-            return verifyChIAPeaks(inters, RP, filename=filename, alpha=alpha)
-
-
-
-
 '''
 Function for ranking entries for multiple replicates
 Entries are ranked independently between replicates
@@ -384,29 +140,32 @@ def rankBed(bedf, rankmethod='signalvalue'):
         svals = []
         # rep = union(bf, minentries=1)[0]
         zcount = 0
+        logged = True
         for peak in rep:
             try:
                 if rankmethod.lower().startswith('signalvalue'):
                     svals.append(peak.signalValue)
                 elif rankmethod.lower().startswith('pvalue'):
                     svals.append(peak.pValue)
+                    if peak.pValue < 1:
+                        logged = False
                 elif rankmethod.lower().startswith('qvalue'):
-                    svals.append(peak.qValue)
+                    if peak.qValue < 1:
+                        logged = False
             except AttributeError:
                 zcount += 1
-                if rankmethod.lower().startswith('signalvalue'):
+                if logged:
                     svals.append(0)
                 else:
                     svals.append(1)
         # zero_up = np.arange(len(rep) - zcount, len(rep), 1).tolist()
         # zmean = np.mean(zero_up)
-        if rankmethod.lower().startswith('signalvalue'):
-            ranks = rankentries(svals, reverse=True, duphandling='average')
+        if max(svals) > 1:
+            ranks = scipy.stats.rankdata(svals, method='average')
+            max_rank = max(ranks)
+            ranks = [max_rank - i for i in ranks]
         else:
-            if max(svals) > 1:
-                ranks = rankentries(svals, reverse=True, duphandling='average')
-            else:
-                ranks = rankentries(svals, reverse=False, duphandling='average')
+            ranks = scipy.stats.rankdata(svals, method='average')
         for ent, rank in zip(rep, ranks):
             if ent != 0:
                 ent.addOption(rank=rank)
@@ -443,9 +202,13 @@ def rankreps(bedf, minentries=None, rankmethod='signalvalue', duphandling='avera
     unions = union(bedf, minentries)
     rankedUni = rankBed(unions[1], rankmethod)
     rp = [1]*len(unions[0])
+
     for idx, rep in enumerate(rankedUni):
         zeros = rep.count(0)
+        # Averages from n-zeros to n
         zero_up = np.arange(len(rep)-zeros, len(rep), 1).tolist()
+        # All pseudo-peaks in all replicates receive rank n
+        # zero_up = [len(rep)]*zeros
         zmean = np.mean(zero_up)
         print(str(zeros) + ' Pseudo-peaks used for replicate number: ' + str(idx + 1))
         for i, ent in enumerate(rep):
@@ -454,7 +217,7 @@ def rankreps(bedf, minentries=None, rankmethod='signalvalue', duphandling='avera
             except AttributeError:
                 rp[i] *= zmean
 
-    return unions, rp
+    return unions, rp, rankedUni
 
 
 """
@@ -1370,7 +1133,7 @@ def union(bedfiles, minentries=2, maxdist=1):
                                         if entryarr_prev[i] in stashed:
                                             check = entryarr_prev[i].getInterval()
                                             mergcheck = merged[0][x].getInterval()
-                                            if check.isect(mergcheck):
+                                            if check.isectStrict(mergcheck):
                                                 stored[i] = copy.deepcopy(entryarr_prev[i])
                                             else:
                                                 stored[i] = 0
@@ -1378,7 +1141,7 @@ def union(bedfiles, minentries=2, maxdist=1):
                                         elif entryarr[i] in stashed:
                                             check = entryarr[i].getInterval()
                                             mergcheck = merged[0][x].getInterval()
-                                            if check.isect(mergcheck):
+                                            if check.isectStrict(mergcheck):
                                                 stored[i] = copy.deepcopy(entryarr[i])
                                             else:
                                                 stored[i] = 0
@@ -1394,14 +1157,14 @@ def union(bedfiles, minentries=2, maxdist=1):
                                     if entryarr_prev[i] in stashed:
                                         check = entryarr_prev[i].getInterval()
                                         mergcheck = merged[0].getInterval()
-                                        if check.isect(mergcheck):
+                                        if check.isectStrict(mergcheck):
                                             stored[i] = copy.deepcopy(entryarr_prev[i])
                                         else:
                                             stored[i] = 0
                                     elif entryarr[i] in stashed:
                                         check = entryarr[i].getInterval()
                                         mergcheck = merged[0].getInterval()
-                                        if check.isect(mergcheck):
+                                        if check.isectStrict(mergcheck):
                                             stored[i] = copy.deepcopy(entryarr[i])
                                         else:
                                             stored[i] = 0
@@ -1435,7 +1198,7 @@ def union(bedfiles, minentries=2, maxdist=1):
                         if entryarr_prev[i] in stashed:
                             check = entryarr_prev[i].getInterval()
                             mergcheck = merged[0][x].getInterval()
-                            if check.isect(mergcheck):
+                            if check.isectStrict(mergcheck):
                                 stored[i] = copy.deepcopy(entryarr_prev[i])
                             else:
                                 stored[i] = 0
@@ -1443,7 +1206,7 @@ def union(bedfiles, minentries=2, maxdist=1):
                         elif entryarr[i] in stashed:
                             check = entryarr[i].getInterval()
                             mergcheck = merged[0][x].getInterval()
-                            if check.isect(mergcheck):
+                            if check.isectStrict(mergcheck):
                                 stored[i] = copy.deepcopy(entryarr[i])
                             else:
                                 stored[i] = 0
@@ -1459,14 +1222,14 @@ def union(bedfiles, minentries=2, maxdist=1):
                     if entryarr_prev[i] in stashed:
                         check = entryarr_prev[i].getInterval()
                         mergcheck = merged[0].getInterval()
-                        if check.isect(mergcheck):
+                        if check.isectStrict(mergcheck):
                             stored[i] = copy.deepcopy(entryarr_prev[i])
                         else:
                             stored[i] = 0
                     elif entryarr[i] in stashed:
                         check = entryarr[i].getInterval()
                         mergcheck = merged[0].getInterval()
-                        if check.isect(mergcheck):
+                        if check.isectStrict(mergcheck):
                             stored[i] = copy.deepcopy(entryarr[i])
                         else:
                             stored[i] = 0
@@ -1748,11 +1511,6 @@ def connect_entries(bedf, reps):
     for chrom in chroms:
         genarr = bedf.generate(chrom)
         entryarr = next(genarr, 0)
-        # lowerbound = metrics[chrom][2] - metrics[chrom][3]
-        # upperbound = metrics[chrom][2] + metrics[chrom][3]
-        # if lowerbound < 50:
-        #     lowerbound = 50
-        # print('Upperbound:', metrics[chrom][0] + metrics[chrom][1])
         buildme = None
         indexs = []  # A history of all indexs of entryarr that appear in stashed
         stashed = []  # where we keep entries that will be merged, once entries are flattened into one
@@ -1811,20 +1569,21 @@ def connect_entries(bedf, reps):
                             else:
                                 lowerbound = 150
                                 upperbound = 450
-                            
-                            if lowerbound <= buildme.max - buildme.min <= upperbound:
+
+                            if lowerbound <= buildme.max - buildme.min:
                                 merged = bed.BedEntry(chrom, buildme.min, buildme.max)
                                 del buildme_vars['chrom'], buildme_vars['chromStart'], buildme_vars['chromEnd']
                                 merged.addOption(**buildme_vars)
                                 unions.append(merged)
-                            elif upperbound <= buildme.max - buildme.min:
-                                diff = buildme.max - buildme.min
-                                del buildme_vars['chrom'], buildme_vars['chromStart'], buildme_vars['chromEnd']
-                                for split in range(int(lowerbound), diff + 1, int(lowerbound)):
-                                    merged = bed.BedEntry(chrom, buildme.min, buildme.min+split)
-                                    merged.addOption(**buildme_vars)
-                                    unions.append(merged)
-                                    buildme.min = buildme.min+split
+                            # elif upperbound <= buildme.max - buildme.min:
+                            #     diff = buildme.max - buildme.min
+                            #     start = buildme.min
+                            #     del buildme_vars['chrom'], buildme_vars['chromStart'], buildme_vars['chromEnd']
+                            #     for split in range(int(lowerbound), diff + 1, int(lowerbound)):
+                            #         merged = bed.BedEntry(chrom, start, start + int(lowerbound))
+                            #         merged.addOption(**buildme_vars)
+                            #         unions.append(merged)
+                            #         start += int(lowerbound)
 
                             buildme = ival.Interval(chosen.chromStart, chosen.chromEnd)
                             buildme_vars = vars(chosen)
@@ -1853,19 +1612,20 @@ def connect_entries(bedf, reps):
                             lowerbound = 150
                             upperbound = 450
 
-                        if lowerbound <= buildme.max - buildme.min <= upperbound:
+                        if lowerbound <= buildme.max - buildme.min:
                             merged = bed.BedEntry(chrom, buildme.min, buildme.max)
                             del buildme_vars['chrom'], buildme_vars['chromStart'], buildme_vars['chromEnd']
                             merged.addOption(**buildme_vars)
                             unions.append(merged)
-                        elif upperbound <= buildme.max - buildme.min:
-                            diff = buildme.max - buildme.min
-                            del buildme_vars['chrom'], buildme_vars['chromStart'], buildme_vars['chromEnd']
-                            for split in range(int(lowerbound), diff + 1, int(lowerbound)):
-                                merged = bed.BedEntry(chrom, buildme.min, buildme.min + split)
-                                merged.addOption(**buildme_vars)
-                                unions.append(merged)
-                                buildme.min = buildme.min + split
+                        # elif upperbound <= buildme.max - buildme.min:
+                        #     diff = buildme.max - buildme.min
+                        #     start = buildme.min
+                        #     del buildme_vars['chrom'], buildme_vars['chromStart'], buildme_vars['chromEnd']
+                        #     for split in range(int(lowerbound), diff + 1, int(lowerbound)):
+                        #         merged = bed.BedEntry(chrom, start, start + int(lowerbound))
+                        #         merged.addOption(**buildme_vars)
+                        #         unions.append(merged)
+                        #         start += int(lowerbound)
 
                         buildme = ival.Interval(chosen.chromStart, chosen.chromEnd)
                         buildme_vars = vars(chosen)
@@ -1887,19 +1647,20 @@ def connect_entries(bedf, reps):
                         lowerbound = 150
                         upperbound = 450
 
-                    if lowerbound <= buildme.max - buildme.min <= upperbound:
+                    if lowerbound <= buildme.max - buildme.min:
                         merged = bed.BedEntry(chrom, buildme.min, buildme.max)
                         del buildme_vars['chrom'], buildme_vars['chromStart'], buildme_vars['chromEnd']
                         merged.addOption(**buildme_vars)
                         unions.append(merged)
-                    elif upperbound <= buildme.max - buildme.min:
-                        diff = buildme.max - buildme.min
-                        del buildme_vars['chrom'], buildme_vars['chromStart'], buildme_vars['chromEnd']
-                        for split in range(int(lowerbound), diff + 1, int(lowerbound)):
-                            merged = bed.BedEntry(chrom, buildme.min, buildme.min + split)
-                            merged.addOption(**buildme_vars)
-                            unions.append(merged)
-                            buildme.min = buildme.min + split
+                    # elif upperbound <= buildme.max - buildme.min:
+                    #     diff = buildme.max - buildme.min
+                    #     start = buildme.min
+                    #     del buildme_vars['chrom'], buildme_vars['chromStart'], buildme_vars['chromEnd']
+                    #     for split in range(int(lowerbound), diff + 1, int(lowerbound)):
+                    #         merged = bed.BedEntry(chrom, start, start + int(lowerbound))
+                    #         merged.addOption(**buildme_vars)
+                    #         unions.append(merged)
+                    #         start += int(lowerbound)
 
                     buildme = ival.Interval(chosen.chromStart, chosen.chromEnd)
                     buildme_vars = vars(chosen)
@@ -1929,19 +1690,20 @@ def connect_entries(bedf, reps):
                 lowerbound = 150
                 upperbound = 450
 
-            if lowerbound <= buildme.max - buildme.min <= upperbound:
+            if lowerbound <= buildme.max - buildme.min:
                 merged = bed.BedEntry(chrom, buildme.min, buildme.max)
                 del buildme_vars['chrom'], buildme_vars['chromStart'], buildme_vars['chromEnd']
                 merged.addOption(**buildme_vars)
                 unions.append(merged)
-            elif upperbound <= buildme.max - buildme.min:
-                diff = buildme.max - buildme.min
-                del buildme_vars['chrom'], buildme_vars['chromStart'], buildme_vars['chromEnd']
-                for split in range(int(lowerbound), diff + 1, int(lowerbound)):
-                    merged = bed.BedEntry(chrom, buildme.min, buildme.min + split)
-                    merged.addOption(**buildme_vars)
-                    unions.append(merged)
-                    buildme.min = buildme.min + split
+            # elif upperbound <= buildme.max - buildme.min:
+            #     diff = buildme.max - buildme.min
+            #     start = buildme.min
+            #     del buildme_vars['chrom'], buildme_vars['chromStart'], buildme_vars['chromEnd']
+            #     for split in range(int(lowerbound), diff + 1, int(lowerbound)):
+            #         merged = bed.BedEntry(chrom, start, start + int(lowerbound))
+            #         merged.addOption(**buildme_vars)
+            #         unions.append(merged)
+            #         start += int(lowerbound)
     unions = bed.BedFile(unions, 'IDR')
 
     return unions
@@ -1952,7 +1714,7 @@ def performrankprod(bedf, minentries=2, rankmethod="pvalue", specifyMax=None,
                     alpha=0.05,
                     filename="bedfile_unions.bed"):
 
-    # First create union and rank the entries in each replicate and return the rankproduct values
+    # First create intersection and rank the entries in each replicate and return the rankproduct values
     ranks = rankreps(bedf, minentries, rankmethod, duphandling, random_seed, specifyMax)
 
     # Calculate rank product for each entry that contributes to a union entry
@@ -1996,7 +1758,11 @@ def performrankprod(bedf, minentries=2, rankmethod="pvalue", specifyMax=None,
     # print(metrics)
     collapsed = connect_entries(collapsed, bedf)
     len2 = len(collapsed)
-    print(len1-len2, ' Peaks removed due to improper size.')
+    diff = len1-len2
+    if diff > 0:
+        print(diff, ' Peaks removed due to improperly sized peaks.')
+    else:
+        print(abs(diff), ' Peaks added due to improperly sized peaks.')
     # collapsed = collapse(uncollapsed) #Collapse any potential overlapping peaks
     # fdr = multipletesting.fdrcorrection(collapsed[1])
     t3cnt = 0

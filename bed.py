@@ -726,6 +726,8 @@ def readBedFile(filename, format = 'Limited'):
             continue # ignore
         if words[0].strip().startswith('track'):
             continue # ignore
+        if words[1].strip().startswith('start'):
+            continue # ignore
         try:
             if format.lower().startswith('bedpe'):
                 chrom1 = words[0]
@@ -812,9 +814,8 @@ def readBedFile(filename, format = 'Limited'):
                                     qValue=float(words[8]))
                 elif format.lower().startswith('2idr'):
                     #For IDR input with actual IDR values
-                    entry.addOption(name=words[3], score=int(words[4]), strand=words[5],
-                                    signalValue=float(words[6]), pValue=float(words[10]),
-                                    qValue=float(words[11]))
+                    entry.addOption(name=words[3], pValue=float(words[9]),
+                                    qValue=float(words[10]))
                 elif format.lower().startswith('summit'):
                     if len(words) >= 9:
                         entry.addOption(summit = int(words[4]), tags = int(words[5]), pValue = float(words[6]),
@@ -835,6 +836,8 @@ def readBedFile(filename, format = 'Limited'):
                                     blockSizes=words[10], blockStarts=words[11])
                 elif format.lower().startswith('TSS'):
                     entry.addOption(name=str(words[3]), gene=str(words[4]), strand=words[5])
+                elif format.lower().startswith('mspc'):
+                    entry.addOption(name=str(words[3]), signalValue=float(words[4]))
 
                 # check if the chromosome has been seen before
                 tree = chroms.get(chrom)
@@ -919,7 +922,7 @@ def BED12toBEDPE(bed12):
 
 
 """
-Function that determines whether the entries of a BedPE file are bounded within the entries of another file. 
+Function that determines whether the entries of a BedPE file are bounded within the entries of another file.
 Only useful when comparing BedPE files to TADs BedFiles
 """
 def TADBoundary(BedFile, BedPE):

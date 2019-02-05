@@ -37,7 +37,7 @@ class RankProdAnalysis(object):
         parser.add_argument("--rankmethod",
                             help="The ranking method used to rank peaks within replicates. "
                                  "Options: 'signalvalue', 'pvalue', 'qvalue'. \n"
-                                 "Default: signalvalue",
+                                 "Default: pvalue",
                             dest="rankmethod",
                             default='pvalue',
                             type=str,

@@ -1574,15 +1574,6 @@ def connect_entries(bedf, reps):
                                 del buildme_vars['chrom'], buildme_vars['chromStart'], buildme_vars['chromEnd']
                                 merged.addOption(**buildme_vars)
                                 unions.append(merged)
-                            # elif upperbound <= buildme.max - buildme.min:
-                            #     diff = buildme.max - buildme.min
-                            #     start = buildme.min
-                            #     del buildme_vars['chrom'], buildme_vars['chromStart'], buildme_vars['chromEnd']
-                            #     for split in range(int(lowerbound), diff + 1, int(lowerbound)):
-                            #         merged = bed.BedEntry(chrom, start, start + int(lowerbound))
-                            #         merged.addOption(**buildme_vars)
-                            #         unions.append(merged)
-                            #         start += int(lowerbound)
 
                             buildme = ival.Interval(chosen.chromStart, chosen.chromEnd)
                             buildme_vars = vars(chosen)
@@ -1616,15 +1607,6 @@ def connect_entries(bedf, reps):
                             del buildme_vars['chrom'], buildme_vars['chromStart'], buildme_vars['chromEnd']
                             merged.addOption(**buildme_vars)
                             unions.append(merged)
-                        # elif upperbound <= buildme.max - buildme.min:
-                        #     diff = buildme.max - buildme.min
-                        #     start = buildme.min
-                        #     del buildme_vars['chrom'], buildme_vars['chromStart'], buildme_vars['chromEnd']
-                        #     for split in range(int(lowerbound), diff + 1, int(lowerbound)):
-                        #         merged = bed.BedEntry(chrom, start, start + int(lowerbound))
-                        #         merged.addOption(**buildme_vars)
-                        #         unions.append(merged)
-                        #         start += int(lowerbound)
 
                         buildme = ival.Interval(chosen.chromStart, chosen.chromEnd)
                         buildme_vars = vars(chosen)
@@ -1651,15 +1633,6 @@ def connect_entries(bedf, reps):
                         del buildme_vars['chrom'], buildme_vars['chromStart'], buildme_vars['chromEnd']
                         merged.addOption(**buildme_vars)
                         unions.append(merged)
-                    # elif upperbound <= buildme.max - buildme.min:
-                    #     diff = buildme.max - buildme.min
-                    #     start = buildme.min
-                    #     del buildme_vars['chrom'], buildme_vars['chromStart'], buildme_vars['chromEnd']
-                    #     for split in range(int(lowerbound), diff + 1, int(lowerbound)):
-                    #         merged = bed.BedEntry(chrom, start, start + int(lowerbound))
-                    #         merged.addOption(**buildme_vars)
-                    #         unions.append(merged)
-                    #         start += int(lowerbound)
 
                     buildme = ival.Interval(chosen.chromStart, chosen.chromEnd)
                     buildme_vars = vars(chosen)
@@ -1694,15 +1667,7 @@ def connect_entries(bedf, reps):
                 del buildme_vars['chrom'], buildme_vars['chromStart'], buildme_vars['chromEnd']
                 merged.addOption(**buildme_vars)
                 unions.append(merged)
-            # elif upperbound <= buildme.max - buildme.min:
-            #     diff = buildme.max - buildme.min
-            #     start = buildme.min
-            #     del buildme_vars['chrom'], buildme_vars['chromStart'], buildme_vars['chromEnd']
-            #     for split in range(int(lowerbound), diff + 1, int(lowerbound)):
-            #         merged = bed.BedEntry(chrom, start, start + int(lowerbound))
-            #         merged.addOption(**buildme_vars)
-            #         unions.append(merged)
-            #         start += int(lowerbound)
+
     unions = bed.BedFile(unions, 'IDR')
 
     return unions

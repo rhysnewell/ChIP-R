@@ -44,7 +44,7 @@ In the command line, type in **'python3 ChIP-R.py -h '** for detailed usage.
       -rankmethod RANKMETHOD
                             The ranking method used to rank peaks within
                             replicates. Options: 'signalvalue', 'pvalue',
-                            'qvalue'. Default: signalvalue
+                            'qvalue'. Default: pvalue
       -duphandling DUPHANDLING
                             Specifies how to handle entries that are ranked
                             equally within a replicate Can either take the

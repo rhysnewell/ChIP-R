@@ -24,51 +24,43 @@ In the command line, type in **'python3 ChIP-R.py -h '** for detailed usage.
 
     $ python3 ChIP-R.py -h
     
-    usage: chiprep [-h] -input INPUT [INPUT ...] [-output OUTPUT]
-                 [-minentries MINENTRIES] [-rankmethod RANKMETHOD]
-                 [-duphandling DUPHANDLING] [-randomseed RANDOM_SEED]
-                 [-alpha ALPHA]
+    usage: ChIP-R [-h] -i INPUT [INPUT ...] [-o OUTPUT] [-m MINENTRIES]
+                  [--rankmethod RANKMETHOD] [--duphandling DUPHANDLING]
+                  [--seed RANDOM_SEED] [-a ALPHA]
 
-    Combine multiple ChIP-seq files and return an intersection of all peak locations and a
+    Combine multiple ChIP-seq files and return a union of all peak locations and a
     set confident, reproducible peaks as determined by rank product analysis
-    
+
     optional arguments:
       -h, --help            show this help message and exit
-      -input INPUT [INPUT ...]
+      -i INPUT [INPUT ...], --input INPUT [INPUT ...]
                             ChIP-seq input files. These files must be in either
-                            narrowPeak, broadPeak, or regionPeak format
-      -output OUTPUT        ChIP-seq output filename
-      -minentries MINENTRIES
+                            narrowPeak, broadPeak, or regionPeak format. Multiple
+                            inputs a separeted by a single space
+      -o OUTPUT, --output OUTPUT
+                            ChIP-seq output filename
+      -m MINENTRIES, --minentries MINENTRIES
                             The minimum peaks between replicates required to form
-                            an intersection of the peaks Default: 2
-      -rankmethod RANKMETHOD
+                            an intersection of the peaks Default: 1
+      --rankmethod RANKMETHOD
                             The ranking method used to rank peaks within
                             replicates. Options: 'signalvalue', 'pvalue',
                             'qvalue'. Default: pvalue
-      -duphandling DUPHANDLING
+      --duphandling DUPHANDLING
                             Specifies how to handle entries that are ranked
                             equally within a replicate Can either take the
                             'average' ranks or a 'random' rearrangement of the
                             ordinal ranks Options: 'average', 'random' Default:
                             'average'
-      -randomseed RANDOM_SEED
-                            Specify a seed to be used in conjunction with the
+      --seed RANDOM_SEED    Specify a seed to be used in conjunction with the
                             'random' option for -duphandling Must be between 0 and
                             1 default: 0.5
-      -alpha ALPHA          Alpha specifies the user cut-off value for set of
+      -a ALPHA, --alpha ALPHA
+                            Alpha specifies the user cut-off value for set of
                             reproducible peaks The analysis will still produce
                             results including peaks within the threshold
                             calculatedusing the binomial method default: 0.05
 
-
-    Performs rank product analysis on ChIP data to either verify reproducible
-    ChIP-seq peaks or ChIA-PET interactions
-    
-    positional arguments:
-      command     Subcommand to run
-    
-    optional arguments:
-      -h, --help  show this help message and exit
 
 Example
 ------
@@ -89,7 +81,7 @@ prefixname.bed file has 10 columns. The output follows the standard peak format 
 
 |chr |start|end  |name |score |strand  |signalValue |p-value |q-value|
 |----|-----|-----|----|------|-----|------|------|------|
-|chr1|9118 |10409|T3_peak_87823|	491|	.	|1.000000	| 0.113938|0.712353	|
+|chr1|9118 |10409|T3_peak_87823|	491|	.	|15.000000	| 0.113938|0.712353	|
 
 
 Citation

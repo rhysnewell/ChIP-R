@@ -64,7 +64,7 @@ In the command line, type in **'python3 ChIP-R.py -h '** for detailed usage.
 
 Example
 ------
-    $ python3 ChIP-R.py -i input_prefix1.bed input_prefix2.bed input_prefix3.bed input_prefix4.bed -minentries 1 -o output_prefix   
+    $ python3 ChIP-R.py -i input_prefix1.bed input_prefix2.bed input_prefix3.bed input_prefix4.bed -m 2 -o output_prefix   
 
 Output
 ------

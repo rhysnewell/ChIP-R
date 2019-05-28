@@ -97,4 +97,4 @@ Contact
 
 Authors: Rhys Newell, Michael Piper, Mikael Boden, Alexandra Essebier
 
-Contact:  rhys.newell(AT)uq.net.au
+Contact:  rhys.newell(AT)uq.edu.au

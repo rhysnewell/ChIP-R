@@ -4,7 +4,7 @@ setup(
     name='chipr',
     version='1.0',
     author='Rhys Newell',
-    suthor_email='r.newell@uq.net.au',
+    suthor_email='r.newell@uq.edu.au',
     packages=find_packages(),
     license='GPL-3.0',
     long_description=open('README.md').read(),

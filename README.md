@@ -11,6 +11,10 @@ Install
 - Scipy
 
 To install ChIP-R:
+    
+    pip install ChIP-R
+    
+OR if you want to install from source:
 
     git clone https://github.com/rhysnewell/ChIP-R.git
     cd ChIP-R

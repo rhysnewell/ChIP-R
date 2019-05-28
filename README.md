@@ -12,21 +12,22 @@ Install
 
 To install ChIP-R:
 
-  git clone git@github.com:rhysnewell/ChIP-R.git
-  
-We recommend you add the src folder to your pythonpath variable in your .bashrc profile
+  git clone https://github.com/rhysnewell/ChIP-R.git
+  cd ChIP-R
+  python3 setup.py install
+
 
 
 Usage
 -----
 
-In the command line, type in **'python3 ChIP-R.py -h '** for detailed usage.
+In the command line, type in **'chipr -h '** for detailed usage.
 
-    $ python3 ChIP-R.py -h
+    $ chipr -h
     
-    usage: ChIP-R [-h] -i INPUT [INPUT ...] [-o OUTPUT] [-m MINENTRIES]
-                  [--rankmethod RANKMETHOD] [--duphandling DUPHANDLING]
-                  [--seed RANDOM_SEED] [-a ALPHA]
+    usage: chipr [-h] -i INPUT [INPUT ...] [-o OUTPUT] [-m MINENTRIES]
+             [--rankmethod RANKMETHOD] [--duphandling DUPHANDLING]
+             [--seed RANDOM_SEED] [-a ALPHA]
 
     Combine multiple ChIP-seq files and return a union of all peak locations and a
     set confident, reproducible peaks as determined by rank product analysis
@@ -36,9 +37,9 @@ In the command line, type in **'python3 ChIP-R.py -h '** for detailed usage.
       -i INPUT [INPUT ...], --input INPUT [INPUT ...]
                             ChIP-seq input files. These files must be in either
                             narrowPeak, broadPeak, or regionPeak format. Multiple
-                            inputs a separeted by a single space
+                            inputs are separeted by a single space
       -o OUTPUT, --output OUTPUT
-                            ChIP-seq output filename
+                            ChIP-seq output filename prefix
       -m MINENTRIES, --minentries MINENTRIES
                             The minimum peaks between replicates required to form
                             an intersection of the peaks Default: 1
@@ -54,17 +55,18 @@ In the command line, type in **'python3 ChIP-R.py -h '** for detailed usage.
                             'average'
       --seed RANDOM_SEED    Specify a seed to be used in conjunction with the
                             'random' option for -duphandling Must be between 0 and
-                            1 default: 0.5
+                            1 Default: 0.5
       -a ALPHA, --alpha ALPHA
                             Alpha specifies the user cut-off value for set of
                             reproducible peaks The analysis will still produce
                             results including peaks within the threshold
-                            calculatedusing the binomial method default: 0.05
+                            calculatedusing the binomial method Default: 0.05
+
 
 
 Example
 ------
-    $ python3 ChIP-R.py -i input_prefix1.bed input_prefix2.bed input_prefix3.bed input_prefix4.bed -m 2 -o output_prefix   
+    $ chipr -i input_prefix1.bed input_prefix2.bed input_prefix3.bed input_prefix4.bed -m 2 -o output_prefix   
 
 Output
 ------
@@ -93,6 +95,6 @@ Citation
 Contact
 -------
 
-Authors: Rhys Newell, Alexandra Essebier, Michael Piper, Mikael Boden
+Authors: Rhys Newell, Michael Piper, Mikael Boden, Alexandra Essebier
 
 Contact:  rhys.newell(AT)uq.net.au

@@ -1,18 +1,23 @@
 from setuptools import setup, find_packages
 
+with open("README.md", "r") as fh:
+    long_description = fh.read()
+
 setup(
-    name='chipr',
+    name='ChIP-R',
     version='1.0',
     author='Rhys Newell',
-    suthor_email='r.newell@uq.edu.au',
+    author_email='r.newell@uq.edu.au',
     packages=find_packages(),
     license='GPL-3.0',
-    long_description=open('README.md').read(),
+    long_description_content_type="text/markdown",
+    long_description=long_description,
     scripts=['bin/chipr'],
     install_requires = ['scipy', 'numpy'],
     entry_points={
         'console_scripts': [
-        'chipr=chipr.__main__:main'
+        'chipr=chipr.__main__:main',
+        'ChIP-R=chipr.__main__:main'
         ]
     },
     python_requires='>=3',

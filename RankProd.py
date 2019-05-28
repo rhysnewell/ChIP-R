@@ -1574,15 +1574,6 @@ def connect_entries(bedf, reps):
                                 del buildme_vars['chrom'], buildme_vars['chromStart'], buildme_vars['chromEnd']
                                 merged.addOption(**buildme_vars)
                                 unions.append(merged)
-                            # elif upperbound <= buildme.max - buildme.min:
-                            #     diff = buildme.max - buildme.min
-                            #     start = buildme.min
-                            #     del buildme_vars['chrom'], buildme_vars['chromStart'], buildme_vars['chromEnd']
-                            #     for split in range(int(lowerbound), diff + 1, int(lowerbound)):
-                            #         merged = bed.BedEntry(chrom, start, start + int(lowerbound))
-                            #         merged.addOption(**buildme_vars)
-                            #         unions.append(merged)
-                            #         start += int(lowerbound)
 
                             buildme = ival.Interval(chosen.chromStart, chosen.chromEnd)
                             buildme_vars = vars(chosen)
@@ -1616,15 +1607,6 @@ def connect_entries(bedf, reps):
                             del buildme_vars['chrom'], buildme_vars['chromStart'], buildme_vars['chromEnd']
                             merged.addOption(**buildme_vars)
                             unions.append(merged)
-                        # elif upperbound <= buildme.max - buildme.min:
-                        #     diff = buildme.max - buildme.min
-                        #     start = buildme.min
-                        #     del buildme_vars['chrom'], buildme_vars['chromStart'], buildme_vars['chromEnd']
-                        #     for split in range(int(lowerbound), diff + 1, int(lowerbound)):
-                        #         merged = bed.BedEntry(chrom, start, start + int(lowerbound))
-                        #         merged.addOption(**buildme_vars)
-                        #         unions.append(merged)
-                        #         start += int(lowerbound)
 
                         buildme = ival.Interval(chosen.chromStart, chosen.chromEnd)
                         buildme_vars = vars(chosen)
@@ -1651,15 +1633,6 @@ def connect_entries(bedf, reps):
                         del buildme_vars['chrom'], buildme_vars['chromStart'], buildme_vars['chromEnd']
                         merged.addOption(**buildme_vars)
                         unions.append(merged)
-                    # elif upperbound <= buildme.max - buildme.min:
-                    #     diff = buildme.max - buildme.min
-                    #     start = buildme.min
-                    #     del buildme_vars['chrom'], buildme_vars['chromStart'], buildme_vars['chromEnd']
-                    #     for split in range(int(lowerbound), diff + 1, int(lowerbound)):
-                    #         merged = bed.BedEntry(chrom, start, start + int(lowerbound))
-                    #         merged.addOption(**buildme_vars)
-                    #         unions.append(merged)
-                    #         start += int(lowerbound)
 
                     buildme = ival.Interval(chosen.chromStart, chosen.chromEnd)
                     buildme_vars = vars(chosen)
@@ -1694,15 +1667,7 @@ def connect_entries(bedf, reps):
                 del buildme_vars['chrom'], buildme_vars['chromStart'], buildme_vars['chromEnd']
                 merged.addOption(**buildme_vars)
                 unions.append(merged)
-            # elif upperbound <= buildme.max - buildme.min:
-            #     diff = buildme.max - buildme.min
-            #     start = buildme.min
-            #     del buildme_vars['chrom'], buildme_vars['chromStart'], buildme_vars['chromEnd']
-            #     for split in range(int(lowerbound), diff + 1, int(lowerbound)):
-            #         merged = bed.BedEntry(chrom, start, start + int(lowerbound))
-            #         merged.addOption(**buildme_vars)
-            #         unions.append(merged)
-            #         start += int(lowerbound)
+
     unions = bed.BedFile(unions, 'IDR')
 
     return unions
@@ -1768,6 +1733,7 @@ def performrankprod(bedf, minentries=2, rankmethod="pvalue", specifyMax=None,
     t1_unions = []
     t2_unions = []
     t3_unions = []
+    pvals = []
 
     for i, v in enumerate(collapsed):
         """
@@ -1780,6 +1746,7 @@ def performrankprod(bedf, minentries=2, rankmethod="pvalue", specifyMax=None,
         Tier 3 - Union that does not meet requirements for previous Tiers.
                  Should not be discarded as its peaks still appear in majority of replicates.
         """
+        pvals.append(v.pValue)
         if alpha <= binomAlpha:
             if v.qValue <= alpha:
                 v.addOption(name='T1_peak_' + str(i),
@@ -1809,7 +1776,7 @@ def performrankprod(bedf, minentries=2, rankmethod="pvalue", specifyMax=None,
                             strand='.')
                 t3_unions.append(v)
 
-    sortedUnions = [x for _, x in sorted(zip(rpb_up, t1_unions+t2_unions+t3_unions), key=lambda pair: pair[0])]
+    sortedUnions = [x for _,x in sorted(zip(pvals, collapsed), key = lambda pair:pair[0])]
     print(round((len(t1_unions)/len(collapsed))*100, 2), "% Tier 1 intersections")
     print(round((len(t2_unions)/len(collapsed))*100, 2), "% Tier 2 intersections")
     print(round((t3cnt/len(collapsed))*100, 2), "% Tier 3 intersections")

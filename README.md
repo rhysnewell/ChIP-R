@@ -12,9 +12,9 @@ Install
 
 To install ChIP-R:
 
-  git clone https://github.com/rhysnewell/ChIP-R.git
-  cd ChIP-R
-  python3 setup.py install
+    git clone https://github.com/rhysnewell/ChIP-R.git
+    cd ChIP-R
+    python3 setup.py install
 
 
 

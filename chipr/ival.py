@@ -1,5 +1,5 @@
 import random
-from collections import deque
+
 
 class IntervalTree:
     """

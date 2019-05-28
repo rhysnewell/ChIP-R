@@ -2,14 +2,14 @@
 
 import argparse
 import sys
-import RankProd
-import bed
-import petprocessing
+from chipr import rankprod
+from chipr import bed
+
 
 class RankProdAnalysis(object):
 
     def __init__(self):
-        parser = argparse.ArgumentParser(prog='ChIP-R',
+        parser = argparse.ArgumentParser(prog='chipr',
                                          description="Combine multiple ChIP-seq files and return a union of all peak "
                                                      "locations and a set confident, reproducible peaks as determined by "
                                                      "rank product analysis")
@@ -78,7 +78,7 @@ class RankProdAnalysis(object):
         print('Processing BedFiles...')
         bedfs = [bed.BedFile(str(i.name), 'Peaks') for i in args.input]
 
-        RankProd.performrankprod(bedfs,
+        rankprod.performrankprod(bedfs,
                                  args.minentries,
                                  args.rankmethod,
                                  'all',
@@ -89,5 +89,8 @@ class RankProdAnalysis(object):
 
 
 
-if __name__ == "__main__":
+def main():
     RankProdAnalysis()
+
+if __name__ == "__main__":
+    main()

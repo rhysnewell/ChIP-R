@@ -1,7 +1,8 @@
-import bed
+from chipr import bed
 import scipy
-from RankProd import *
-
+import numpy as np
+from chipr import rankprod
+from chipr import multipletesting
 
 def verifyChIAPeaks(chiaData, chipData, filename, alpha):
     listinters = []
@@ -149,7 +150,7 @@ def verifyChIAPeaks(chiaData, chipData, filename, alpha):
     #     print(rpb)
     # ints, probs = (list(x) for x in zip(*sorted(zip(ainters, probs), key=lambda pair: pair[1], reverse=False)))
     corrected = multipletesting.fdrcorrection(brobs, alpha)
-    thresh = thresholdCalc(brobs)
+    thresh = rankprod.thresholdCalc(brobs)
     try:
         binomAlpha = round(min(thresh[2]), 3)
         if binomAlpha==0:
@@ -195,7 +196,7 @@ def verifyChIAPeaks(chiaData, chipData, filename, alpha):
     allinters = bed.BedFile(ainters, "BEDPE")
     print(len(fdr), 'Interactions pass FDR threshold')
     bed.writeBedFile(allinters, filename + '.bedpe', format='BEDPE')
-    bed.writeBedFile(fdr, filename+'.bedpe', format="BEDPE")
+    bed.writeBedFile(fdr, filename + '.bedpe', format="BEDPE")
     intersBED12 = bed.BEDPEtoBED12(allinters)
     bed.writeBedFile(intersBED12, filename + '.bed', format='BED12')
 
@@ -230,16 +231,16 @@ def ChIAreproducibility(chia, chip, minentries=None, rank='signalValue', thresho
             inters = joinChIA(chia)
         except TypeError:
             inters = chia
-        performrankprod(chip, minentries=minentries, rankmethod=rank, alpha=alpha, filename=filename+'.bed')
+        rankprod.performrankprod(chip, minentries=minentries, rankmethod=rank, alpha=alpha, filename=filename+'.bed')
         if threshold == 'binom':
-            RP = bed.BedFile('T2_'+filename+'.bed', 'Peaks')
+            RP = bed.BedFile('T2_' + filename + '.bed', 'Peaks')
 
             return verifyChIAPeaks(inters, RP, filename=filename, alpha=alpha)
         elif threshold == 'alpha':
-            RP = bed.BedFile('T1_'+filename+'.bed', 'Peaks')
+            RP = bed.BedFile('T1_' + filename + '.bed', 'Peaks')
             return verifyChIAPeaks(inters, RP, filename=filename, alpha=alpha)
 
         elif threshold == 'all':
-            RP = bed.BedFile('ALL_'+filename+'.bed', 'Peaks')
+            RP = bed.BedFile('ALL_' + filename + '.bed', 'Peaks')
             return verifyChIAPeaks(inters, RP, filename=filename, alpha=alpha)
 

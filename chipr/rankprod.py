@@ -6,15 +6,15 @@ Created on Mon Sep 18 14:23:48 2017
 @author: rhys
 """
 #
-import bed
-import ival
+from chipr import bed
+from chipr import ival
 import numpy as np
 from functools import reduce
 import operator
 import math
 import random
 import copy
-import multipletesting
+from chipr import multipletesting
 import scipy.stats
 
 
@@ -790,7 +790,7 @@ def clip(interval, N, min_N, minsize=0):
             if current is None and cnt >= min_N:
                 try:
                     if mins[idx_min+1] < maxs[idx_max]:
-                        current = ival.Interval(mins[idx_min], mins[idx_min+1])
+                        current = ival.Interval(mins[idx_min], mins[idx_min + 1])
                         if (current.max - current.min) >= minsize:
                             ret.append(current)
                     else:
@@ -838,7 +838,7 @@ def clip(interval, N, min_N, minsize=0):
             if current is None and cnt >= min_N:
                 try:
                     if mins[idx_min+1] < maxs[idx_max]:
-                        current = ival.Interval(mins[idx_min], mins[idx_min+1])
+                        current = ival.Interval(mins[idx_min], mins[idx_min + 1])
                         if (current.max - current.min) >= minsize:
                             ret.append(current)
                     else:
@@ -1782,9 +1782,9 @@ def performrankprod(bedf, minentries=2, rankmethod="pvalue", specifyMax=None,
     print(round((t3cnt/len(collapsed))*100, 2), "% Tier 3 intersections")
 
     if filename is not None:
-        bed.writeBedFile(sortedUnions, filename+"_ALL.bed", format="Peaks")
-        bed.writeBedFile(t1_unions, filename+"_T1.bed", format="Peaks")
-        bed.writeBedFile(t1_unions+t2_unions, filename+"_T2.bed", format="Peaks")
+        bed.writeBedFile(sortedUnions, filename + "_ALL.bed", format="Peaks")
+        bed.writeBedFile(t1_unions, filename + "_T1.bed", format="Peaks")
+        bed.writeBedFile(t1_unions + t2_unions, filename + "_T2.bed", format="Peaks")
         mets = bed.BedFile(sortedUnions).getMetrics()
         f = open(filename+'_log.txt', 'w')
         f.write('Peaks only below q-value alpha:'+str(alpha)+', '+str(len(t1_unions))+'\n'+

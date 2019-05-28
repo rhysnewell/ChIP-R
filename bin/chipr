@@ -1,0 +1,9 @@
+#!/usr/bin/env python3
+import os, sys
+
+if sys.version_info.major <= 2:
+    raise ValueError( "ChIP-R requires python version 3 or higher" )
+
+from chipr import chipr
+
+chipr.main()

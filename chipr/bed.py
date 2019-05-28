@@ -1,4 +1,4 @@
-import ival
+from chipr import ival
 import numpy as np
 """
 Defines class for reading BED entries in the form of BED Paired End entries

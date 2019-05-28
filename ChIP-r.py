@@ -15,13 +15,13 @@ class RankProdAnalysis(object):
                                                      "rank product analysis")
         parser.add_argument("-i", "--input",
                             help="ChIP-seq input files. These files must be in either narrowPeak, broadPeak, "
-                                 "or regionPeak format. Multiple inputs a separeted by a single space",
+                                 "or regionPeak format. Multiple inputs are separeted by a single space",
                             dest="input",
                             type=argparse.FileType('r'),
                             nargs='+',
                             required=True)
         parser.add_argument("-o", "--output",
-                            help="ChIP-seq output filename",
+                            help="ChIP-seq output filename prefix",
                             dest="output",
                             type=str,
                             default="rankprod",
@@ -54,7 +54,7 @@ class RankProdAnalysis(object):
         parser.add_argument("--seed",
                             help="Specify a seed to be used in conjunction with the 'random' option for -duphandling "
                                  "Must be between 0 and 1 \n"
-                                 "default: 0.5",
+                                 "Default: 0.5",
                             dest="random_seed",
                             default=0.5,
                             type=float,
@@ -63,7 +63,7 @@ class RankProdAnalysis(object):
                             help="Alpha specifies the user cut-off value for set of reproducible peaks "
                                  "The analysis will still produce results including peaks within the threshold calculated"
                                  "using the binomial method \n"
-                                 "default: 0.05",
+                                 "Default: 0.05",
                             dest="alpha",
                             default=0.05,
                             type=float,

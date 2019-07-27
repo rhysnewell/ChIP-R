@@ -13,7 +13,7 @@ setup(
     long_description_content_type="text/markdown",
     long_description=long_description,
     scripts=['bin/chipr'],
-    install_requires = ['scipy', 'numpy'],
+    install_requires = ['scipy', 'numpy', 'pyBigWig'],
     entry_points={
         'console_scripts': [
         'chipr=chipr.__main__:main',

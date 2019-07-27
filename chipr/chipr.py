@@ -2,8 +2,8 @@
 
 import argparse
 import sys
-from chipr import rankprod
-from chipr import bed
+from chipr import rankprod, bed, bigbed
+
 
 
 class RankProdAnalysis(object):
@@ -26,6 +26,11 @@ class RankProdAnalysis(object):
                             type=str,
                             default="rankprod",
                             required=False)
+        parser.add_argument("-B", "--bigbed",
+                            help="Specify if input files are in BigBed format",
+                            dest="bigbed",
+                            action="store_true")
+        parser.set_defaults(bigbed=False)
         parser.add_argument("-m", "--minentries",
                             help="The minimum peaks between replicates required to form an "
                                  "intersection of the peaks \n"
@@ -76,7 +81,10 @@ class RankProdAnalysis(object):
             print(str(i.name))
 
         print('Processing BedFiles...')
-        bedfs = [bed.BedFile(str(i.name), 'Peaks') for i in args.input]
+        if args.bigbed:
+            bedfs = [bigbed.readBigBed(str(i.name)) for i in args.input]
+        else:
+            bedfs = [bed.BedFile(str(i.name), 'Peaks') for i in args.input]
 
         rankprod.performrankprod(bedfs,
                                  args.minentries,

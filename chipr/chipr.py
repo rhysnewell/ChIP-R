@@ -80,7 +80,7 @@ class RankProdAnalysis(object):
         for i in args.input:
             print(str(i.name))
 
-        print('Processing BedFiles...')
+        print('Processing Input...')
         if args.bigbed:
             bedfs = [bigbed.readBigBed(str(i.name)) for i in args.input]
         else:

@@ -44,6 +44,7 @@ In the command line, type in **'chipr -h '** for detailed usage.
                             inputs are separeted by a single space
       -o OUTPUT, --output OUTPUT
                             ChIP-seq output filename prefix
+      -B, --bigbed          Specify if input files are in BigBed format
       -m MINENTRIES, --minentries MINENTRIES
                             The minimum peaks between replicates required to form
                             an intersection of the peaks Default: 1

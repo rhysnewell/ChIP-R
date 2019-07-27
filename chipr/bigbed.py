@@ -8,7 +8,7 @@ def readBigBed(filename):
     chroms = dict()
 
     if file.isBigBed():
-        if file.SQL().decode('utf8').lower().find('narrowpeak') != -1 or bb.SQL().decode('utf8').lower().find(
+        if file.SQL().decode('utf8').lower().find('narrowpeak') != -1 or file.SQL().decode('utf8').lower().find(
                 'broadpeak') != -1:
             for chrom in file.chroms():
                 entries = file.entries(chrom, 0, file.chroms(chrom))

@@ -9,6 +9,7 @@ Install
 - [Python3.x](https://www.python.org/getit/) with the following packages:
 - Numpy
 - Scipy
+- pyBigWig
 
 To install ChIP-R:
     

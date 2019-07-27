@@ -81,10 +81,8 @@ class RankProdAnalysis(object):
             print(str(i.name))
 
         print('Processing Input...')
-        if args.bigbed:
-            bedfs = [bigbed.readBigBed(str(i.name)) for i in args.input]
-        else:
-            bedfs = [bed.BedFile(str(i.name), 'Peaks') for i in args.input]
+
+        bedfs = [bed.BedFile(str(i.name), 'Peaks', bigBed=args.bigbed) for i in args.input]
 
         rankprod.performrankprod(bedfs,
                                  args.minentries,

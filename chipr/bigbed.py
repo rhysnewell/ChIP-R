@@ -10,8 +10,8 @@ def readBigBed(filename):
     if file.isBigBed():
         if file.SQL().decode('utf8').lower().find('narrowpeak') != -1 or bb.SQL().decode('utf8').lower().find(
                 'broadpeak') != -1:
-            for chrom in bb.chroms():
-                entries = bb.entries(chrom, 0, bb.chroms(chrom))
+            for chrom in file.chroms():
+                entries = file.entries(chrom, 0, file.chroms(chrom))
                 for entry in entries:
                     try:
                         words = entry[2].strip().split()
@@ -41,6 +41,5 @@ def readBigBed(filename):
 
         else:
             print("BigBed file not ENCODE narrowPeak or broadPeak")
+    file.close()
     return chroms
-
-bb = pyBigWig.open('spp.test.bb')

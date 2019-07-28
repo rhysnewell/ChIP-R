@@ -2,7 +2,7 @@
 
 import argparse
 import sys
-from chipr import rankprod, bed, bigbed
+from chipr import rankprod, bed
 
 
 
@@ -44,7 +44,7 @@ class RankProdAnalysis(object):
                                  "Options: 'signalvalue', 'pvalue', 'qvalue'. \n"
                                  "Default: pvalue",
                             dest="rankmethod",
-                            default='pvalue',
+                            default='signalvalue',
                             type=str,
                             required=False)
         parser.add_argument("--duphandling",

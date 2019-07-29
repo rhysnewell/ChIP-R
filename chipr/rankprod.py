@@ -1685,8 +1685,8 @@ def performrankprod(bedf, minentries=2, rankmethod="pvalue", specifyMax=None,
     # Calculate the pvalues of the rank product values
     print('Calculating rank product probabilities...')
     rpb_up = rankprodbounds(ranks[1], len(ranks[1]), len(bedf), 'geometric')
-    # return rpb_up
     print('Calculating binomial threshold...')
+    # Calculate rpb and binomial intersection point
     Pks = thresholdCalc(rpb_up, k=len(bedf)-(minentries-1))
     if len(Pks[2]) != 0:
         binomAlpha = round(min(Pks[2]), 3)
@@ -1696,7 +1696,6 @@ def performrankprod(bedf, minentries=2, rankmethod="pvalue", specifyMax=None,
     print('Binomial threshold:'+str(binomAlpha))
 
     # Perform multiple hypothesis testing correction upon the pvals
-    # pvals = np.array(rpb_up)
     fdr = multipletesting.fdrcorrection(rpb_up)
 
     # Determine whether to remove entries that are called significant
@@ -1719,16 +1718,8 @@ def performrankprod(bedf, minentries=2, rankmethod="pvalue", specifyMax=None,
     collapsed = bed.BedFile(ranks[0][0], 'IDR')
     len1 = len(collapsed)
 
-    # print(metrics)
     collapsed = connect_entries(collapsed, bedf)
-    len2 = len(collapsed)
-    diff = len1-len2
-    if diff > 0:
-        print(diff, ' Peaks removed due to improperly sized peaks.')
-    else:
-        print(abs(diff), ' Peaks added due to improperly sized peaks.')
-    # collapsed = collapse(uncollapsed) #Collapse any potential overlapping peaks
-    # fdr = multipletesting.fdrcorrection(collapsed[1])
+
     t3cnt = 0
     t1_unions = []
     t2_unions = []
@@ -1785,7 +1776,7 @@ def performrankprod(bedf, minentries=2, rankmethod="pvalue", specifyMax=None,
         bed.writeBedFile(sortedUnions, filename + "_ALL.bed", format="Peaks")
         bed.writeBedFile(t1_unions, filename + "_T1.bed", format="Peaks")
         bed.writeBedFile(t1_unions + t2_unions, filename + "_T2.bed", format="Peaks")
-        mets = bed.BedFile(sortedUnions).getMetrics()
+        # mets = bed.BedFile(sortedUnions).getMetrics()
         f = open(filename+'_log.txt', 'w')
         f.write('Peaks only below q-value alpha:'+str(alpha)+', '+str(len(t1_unions))+'\n'+
                 'Peaks only below p-value binomial alpha:'+str(binomAlpha)+', '+str(len(t2_unions))+'\n'+

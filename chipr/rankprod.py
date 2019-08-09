@@ -3,7 +3,7 @@
 """
 Created on Mon Sep 18 14:23:48 2017
 
-@author: rhys
+@author: rhys newell
 """
 #
 from chipr import bed
@@ -118,22 +118,22 @@ def reduceEntries(bedf, metric, specifyMax):
 
     return newbedf
 
-'''
-Function for ranking entries for multiple replicates
-Entries are ranked independently between replicates
-
-@param bedf         a list of all replicates in bedfile format
-
-@param rankmethod   determines what metric is used to rank the entries
-                    'all', 'signalvalue', 'pvalue', 'qvalue'
-                    all: will only work when value sother than -1 are provided for each entry
-
-@param duphandling  determines how to handles duplicates
-                    'randomize' randomizes the order of the ranks
-                    'average' gives the average of ranks
-'''
 
 def rankBed(bedf, rankmethod='signalvalue'):
+    '''
+    Function for ranking entries for multiple replicates
+    Entries are ranked independently between replicates
+
+    @param bedf         a list of all replicates in bedfile format
+
+    @param rankmethod   determines what metric is used to rank the entries
+                        'all', 'signalvalue', 'pvalue', 'qvalue'
+                        all: will only work when value sother than -1 are provided for each entry
+
+    @param duphandling  determines how to handles duplicates
+                        'randomize' randomizes the order of the ranks
+                        'average' gives the average of ranks
+    '''
     newbedf = []
     for rep in bedf:
         svals = []
@@ -219,19 +219,17 @@ def rankreps(bedf, minentries=None, rankmethod='signalvalue', duphandling='avera
     return unions, rp, rankedUni
 
 
-"""
-Entropy
-
-function for determining the entropy of the assigned ranks in an attempt to determine a 'surprisal' value
-
-@param unions - Directly takes the output from the rankreps function
-
-@return entropy_values - A list of entropy values for the for the replicates
-
-"""
-
-
 def rankEntropy(unions):
+    """
+    Entropy
+
+    function for determining the entropy of the assigned ranks in an attempt to determine a 'surprisal' value
+
+    @param unions - Directly takes the output from the rankreps function
+
+    @return entropy_values - A list of entropy values for the for the replicates
+
+    """
     entries = unions[1]
     entropy_values = []
     min_rank = 1
@@ -320,24 +318,22 @@ def monotonetransformation(vec):
     return vals
 
 
-'''
-rankprod
-
-Function for calculating RP values based on ranks applied to bed entries
-
-reps      array of bed entries and their union from the rankReps function
-          If reps come from rankReps then input reps as reps[1]
-          to avoid inputting the union list
-
-method    Specify whether to use all replicates for the product or holdout some
-          e.g. 'all', 'holdout'
-
-holdout   specify how many replicates to withdraw from the analysis,
-          removes replicates from the end of the list
-'''
-
-
 def rankprod(reps, method='all', holdout=None):
+    '''
+    rankprod
+
+    Function for calculating RP values based on ranks applied to bed entries
+
+    reps      array of bed entries and their union from the rankReps function
+              If reps come from rankReps then input reps as reps[1]
+              to avoid inputting the union list
+
+    method    Specify whether to use all replicates for the product or holdout some
+              e.g. 'all', 'holdout'
+
+    holdout   specify how many replicates to withdraw from the analysis,
+              removes replicates from the end of the list
+    '''
     if method == 'all':
         obsproducts = product(reps[1])
         # RP = [x**(1/len(reps[1])) for x in obsproducts]
@@ -373,47 +369,6 @@ def switch(x):
     return {'a': 1, 'b': 2}.get(x, 9)
 
 
-'''
-rankprodbounds
-
-Description
-
-This function computes bounds on the p-value for rank products.
-
-
-Arguments
-
-rho     a vector of integers corresponding to the rank products for which one wishes to
-        compute the p-value. These are NOT the geometric means of the rank product values.
-
-n       the number of peaks.
-
-k       the number of replicates.
-
-Delta   a character string indicating whether an upper bound ('upper'), lower bound
-        ('lower'), or geometric approximation ('geometric') should be computed.
-
-
-Returns
-
-A vector of p-values, one for each rank product.
-
-Details
-
-The exact p-value is guaranteed to be in between the lower and the upper bound. The
-geometric mean of the two bounds can be used as an approximation. Each bound is a piecewise
-continuous function of the rank product. The different pieces each have an analytic form,
-the parameters of which can be computed recursively.
-
-Note
-
-This implementation closely follows the description in Heskes, Eisinga, Breitling:
-"A fast algorithm for determining bounds and accurate approximate p-values of the
-rank product statistic for replicate experiments", BMC Bioinformatics, referred to
-below to as HEB.
-'''
-
-
 def iterflatten(root):  # Function flatten list of lists into single list, not limited by depth
     if isinstance(root, (list, tuple)):
         for element in root:
@@ -424,6 +379,45 @@ def iterflatten(root):  # Function flatten list of lists into single list, not l
 
 
 def rankprodbounds(rho, n, k, Delta):
+    '''
+    rankprodbounds
+
+    Description
+
+    This function computes bounds on the p-value for rank products.
+
+
+    Arguments
+
+    rho     a vector of integers corresponding to the rank products for which one wishes to
+            compute the p-value. These are NOT the geometric means of the rank product values.
+
+    n       the number of peaks.
+
+    k       the number of replicates.
+
+    Delta   a character string indicating whether an upper bound ('upper'), lower bound
+            ('lower'), or geometric approximation ('geometric') should be computed.
+
+
+    Returns
+
+    A vector of p-values, one for each rank product.
+
+    Details
+
+    The exact p-value is guaranteed to be in between the lower and the upper bound. The
+    geometric mean of the two bounds can be used as an approximation. Each bound is a piecewise
+    continuous function of the rank product. The different pieces each have an analytic form,
+    the parameters of which can be computed recursively.
+
+    Note
+
+    This implementation closely follows the description in Heskes, Eisinga, Breitling:
+    "A fast algorithm for determining bounds and accurate approximate p-values of the
+    rank product statistic for replicate experiments", BMC Bioinformatics, referred to
+    below to as HEB.
+    '''
     # Input Handling
     if any(rho) > ((n ** k) + 1) or any(rho) < 1:
         return 'rho out of bounds'
@@ -532,43 +526,41 @@ def rankprodbounds(rho, n, k, Delta):
     return pvalue
 
 
-'''
-
-updateparam
-
-Description
-
-This subroutine updates the current set of parameters to make sure that the parameters
-corresponding to k replicates and the j'th interval are included.
-
-Arguments
-
-param   a matrix of lists, where each element of param is a list with values for the
-        parameters a through e; these parameters specify the functional form of the bound;
-        a, b, and c are all vectors of unknown length, d and e are scalars.
-n       the number of peaks
-k       the number of replicates for which we need to compute the corresponding parameters.
-j       the index of the interval for which we need to compute the corresponding parameters.
-Delta   0 for the lower bound and 1 for the upper bound.
-
-Value
-
-A possibly updated set of parameters, at least including those corresponding to (k,j).
-
-Details
-
-This subroutine make sure that the parameters corresponding to k replicates and a rank product
-within the j'th interval are included. If they already are (because calculated before), it
-does not compute anything. Otherwise, it recursively computes all parameters
-that are needed to arrive at the parameters for (k,j).
-
-Note
-
-This implementation closely follows HEB, in particular equations (9) through (11).
-'''
-
-
 def updateparam(param, n, k, j, Delta):
+    '''
+
+    updateparam
+
+    Description
+
+    This subroutine updates the current set of parameters to make sure that the parameters
+    corresponding to k replicates and the j'th interval are included.
+
+    Arguments
+
+    param   a matrix of lists, where each element of param is a list with values for the
+            parameters a through e; these parameters specify the functional form of the bound;
+            a, b, and c are all vectors of unknown length, d and e are scalars.
+    n       the number of peaks
+    k       the number of replicates for which we need to compute the corresponding parameters.
+    j       the index of the interval for which we need to compute the corresponding parameters.
+    Delta   0 for the lower bound and 1 for the upper bound.
+
+    Value
+
+    A possibly updated set of parameters, at least including those corresponding to (k,j).
+
+    Details
+
+    This subroutine make sure that the parameters corresponding to k replicates and a rank product
+    within the j'th interval are included. If they already are (because calculated before), it
+    does not compute anything. Otherwise, it recursively computes all parameters
+    that are needed to arrive at the parameters for (k,j).
+
+    Note
+
+    This implementation closely follows HEB, in particular equations (9) through (11).
+    '''
     k1 = k + 1
     j1 = j + 1
 
@@ -686,34 +678,32 @@ def updateparam(param, n, k, j, Delta):
     return param
 
 
-'''
-makeunique
-
-Description
-
-This subroutine updates the parameters for a specific number of replicates and interval
-such that it contains only unique combinations of the parameters a and b.
-
-Arguments
-
-param   a single list with values for the parameters a through e; these parameters
-        specify the functional form of the bound; a, b, and c are all vectors of
-        unknown length, d and e are scalars.
-
-Value
-
-A possibly updated and then more concise set of parameters containing only unique
-combinations of the parameters a and b.
-
-Details
-
-While updating the vectors a and b, one may end up with the exact same combinations of
-a and b. Given the functional form of the bound, the representation can then be made more
-concise by simply adding the corresponding elements of c.
-'''
-
-
 def makeunique(param):
+    '''
+    makeunique
+
+    Description
+
+    This subroutine updates the parameters for a specific number of replicates and interval
+    such that it contains only unique combinations of the parameters a and b.
+
+    Arguments
+
+    param   a single list with values for the parameters a through e; these parameters
+            specify the functional form of the bound; a, b, and c are all vectors of
+            unknown length, d and e are scalars.
+
+    Value
+
+    A possibly updated and then more concise set of parameters containing only unique
+    combinations of the parameters a and b.
+
+    Details
+
+    While updating the vectors a and b, one may end up with the exact same combinations of
+    a and b. Given the functional form of the bound, the representation can then be made more
+    concise by simply adding the corresponding elements of c.
+    '''
 
     p1 = [x for x in param[0]]
     p2 = [x for x in param[1]]
@@ -753,19 +743,17 @@ def matmult(a, b):
              for col_b in zip_b] for row_a in a]
 
 
-'''''
-
-clip
-
-Determining the set of intervals that define the N-fold intersection between the input intervals
-Note that zero-length intervals are NOT adding to the intersection count
-
-Interval: list of intervals
-
-'''''
-
-
 def clip(interval, N, min_N, minsize=0):
+    '''''
+
+    clip
+
+    Determining the set of intervals that define the N-fold intersection between the input intervals
+    Note that zero-length intervals are NOT adding to the intersection count
+
+    Interval: list of intervals
+
+    '''''
 
     if min_N < 1:
         return "clip: N must be 1 or greater"
@@ -897,29 +885,27 @@ def clip(interval, N, min_N, minsize=0):
     return newret, avmin, avmax
 
 
-'''
-merge
-
-Method for merging multiple entries into one,
-all falling within the given interval (which defines the extremes of the entries).
-With min_N set to 0 or 1, the method simply flattens the entries,
-resulting in exactly one entry with its score set to the maximum score (or number of entries, if score is not set).
-With a greater min_N, the method may return 0, 1 or more entries.
-
-chrom   the chromosome identifier
-
-start   the start point of the default interval to make up the entry
-
-end     the end point of the default interval to make up the entry
-
-stash   the entries to be merged
-
-min_N   minimum number of entries for defining an entry
-
-'''
-
-
 def merge(chrom, start, end, stash, min_N, N):
+    '''
+    merge
+
+    Method for merging multiple entries into one,
+    all falling within the given interval (which defines the extremes of the entries).
+    With min_N set to 0 or 1, the method simply flattens the entries,
+    resulting in exactly one entry with its score set to the maximum score (or number of entries, if score is not set).
+    With a greater min_N, the method may return 0, 1 or more entries.
+
+    chrom   the chromosome identifier
+
+    start   the start point of the default interval to make up the entry
+
+    end     the end point of the default interval to make up the entry
+
+    stash   the entries to be merged
+
+    min_N   minimum number of entries for defining an entry
+
+    '''
     entries = []
     if min_N > len(stash):  # No point in the interval can meet the minimum number of overlapping entries
         # clipped = clip(stash, 1)
@@ -1025,22 +1011,20 @@ def start(vec):
     return startent
 
 
-'''
-union
-
-Create a set of BED entries that represent the union of BED entries in the given BED files.
-
-bedfiles     the BED files
-
-minentries   the minimum number of entries that need to fall into the interval to create a union
-
-maxdist      Specifies the maximum distance between entries before they are seen as no longer connected
-
-return the BED entries, to be used to construct a new BED file
-'''
-
-
 def union(bedfiles, minentries=2, maxdist=1):
+    '''
+    union
+
+    Create a set of BED entries that represent the union of BED entries in the given BED files.
+
+    bedfiles     the BED files
+
+    minentries   the minimum number of entries that need to fall into the interval to create a union
+
+    maxdist      Specifies the maximum distance between entries before they are seen as no longer connected
+
+    return the BED entries, to be used to construct a new BED file
+    '''
 
     bedfiles = list(iterflatten(bedfiles))
     unions = []
@@ -1258,28 +1242,28 @@ def getsigadjpvals(pvals, alpha=0.05, method='h'):
             idxs.append(idx)
     return idxs
 
-"""
-Overlaps:
-defines whether two bed entries are overlapping with each other
-@param buffer: sets a buffer zone around entry1 extending it's space by that many bps
-"""
 
 def overlaps(ent1, ent2, buffer=0):
-
+    """
+    Overlaps:
+    defines whether two bed entries are overlapping with each other
+    @param buffer: sets a buffer zone around entry1 extending it's space by that many bps
+    """
     if (ent1.chromStart-buffer) <= ent2.chromStart <= (ent1.chromEnd+buffer):
         return True
     elif (ent1.chromStart-buffer) <= ent2.chromEnd <= (ent1.chromEnd+buffer):
         return True
     else:
         return False
-"""
-collapse:
-Function that collapses the final union bedfile AFTER the rank product analysis has been performed. If there are multiple
-Bed Entries overlapping one another, they will be merged preventing an overabundance of bed entries created by the
-union function.
-"""
+
 
 def collapse(bedf, idr=False):
+    """
+    collapse:
+    Function that collapses the final union bedfile AFTER the rank product analysis has been performed. If there are multiple
+    Bed Entries overlapping one another, they will be merged preventing an overabundance of bed entries created by the
+    union function.
+    """
     allOl = []
     pvals = []
     if idr is True:
@@ -1471,21 +1455,17 @@ def collapse(bedf, idr=False):
         return allOl, pvals
 
 
-"""
-thresholdCalc
-Function for calculating a suitable cutoff threshold for a list of P-values.
-Uses the binomial distribution to search for a minimum Pk, where Pk is the sum of binomial PMFs of 1 - p-values.
-
-params:
-@p - A list of P-values from the rank product distribution
-@niter - The number of times the same Pk value has to be seen before the function decides to stop
-@startingIndex - The starting position of to start looking through the p-value list. Lower numbers will provide more
-                 accurate results at the cost of speed.
-
-"""
-
-
 def thresholdCalc(p, k=6):
+
+    """
+    thresholdCalc
+    Function for calculating a suitable cutoff threshold for a list of P-values.
+    Finds intersection point between the binomial cumulative distribution function and the rank product probabilities
+
+    params:
+    @p - A list of P-values from the rank product distribution
+
+    """
     n = len(p)
     ps = sorted(p)
     bs = []
@@ -1497,14 +1477,16 @@ def thresholdCalc(p, k=6):
     pits = [ps[i] for i in idx]
 
     return bs, ps, pits, idx
-"""
-connect_entries
-Modified version of union function that takes only one bedfile input and connects entries that are within 1 base pair
-of each other and have a significantly close enough rank product p-value.
 
-Prevents over fractionation of peaks.
-"""
+
 def connect_entries(bedf, reps):
+    """
+    connect_entries
+    Modified version of union function that takes only one bedfile input and connects entries that are within 1 base pair
+    of each other and have a significantly close enough rank product p-value.
+
+    Prevents over fractionation of peaks.
+    """
     chroms = bedf.chroms.keys()
     unions = []
     for chrom in chroms:

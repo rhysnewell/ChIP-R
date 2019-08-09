@@ -674,6 +674,17 @@ class BedFile:
             metrics[chr] = [widthmean, std, m, MAD]
         return metrics
 
+    def poolBED(self, bedfile):
+        for entry in bedfile:
+            # check if the chromosome has been seen before
+            tree = self.chroms.get(entry.chrom)
+            if not tree:
+                tree = ival.IntervalTree()
+                self.chroms[entry.chrom] = tree
+            # put the entry in the interval tree for the appropriate chromosome
+            iv = ival.Interval(entry.chromStart, entry.chromEnd)
+            tree.put(iv, entry)
+
 
 
 

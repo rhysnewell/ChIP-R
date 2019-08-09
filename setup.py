@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setup(
     name='ChIP-R',
-    version='1.1.3',
+    version='1.1.4',
     author='Rhys Newell, Mikael Boden, Alex Essebier',
     author_email='r.newell@uq.edu.au',
     packages=find_packages(),

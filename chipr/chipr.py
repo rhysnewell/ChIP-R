@@ -27,7 +27,8 @@ class RankProdAnalysis(object):
                             default="rankprod",
                             required=False)
         parser.add_argument("-B", "--bigbed",
-                            help="Specify if input files are in BigBed format",
+                            help="Specify if input files are in BigBed format. "
+                                 "Note: This flag is no longer required as format is auto-detected",
                             dest="bigbed",
                             action="store_true")
         parser.set_defaults(bigbed=False)

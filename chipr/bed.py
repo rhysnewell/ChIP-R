@@ -469,7 +469,10 @@ class BedFile:
         if bigBed:
             self.chroms = bigbed.readBigBed(entries)
         elif isinstance(entries, str): # filename
-            self.chroms = readBedFile(entries, format)
+            try:
+                self.chroms = readBedFile(entries, format)
+            except UnicodeDecodeError:
+                self.chroms = bigbed.readBigBed(entries)
         else:
             self.chroms = dict()
             if format.lower().startswith('bedpe'):

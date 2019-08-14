@@ -1479,7 +1479,7 @@ def thresholdCalc(p, k=6):
     return bs, ps, pits, idx
 
 
-def connect_entries(bedf, reps):
+def connect_entries(bedf, reps, default_min_peak=20):
     """
     connect_entries
     Modified version of union function that takes only one bedfile input and connects entries that are within 1 base pair
@@ -1524,7 +1524,7 @@ def connect_entries(bedf, reps):
                         lowerbound = mean_width - mean_width / 2
                         upperbound = mean_width + mean_width / 2
                     else:
-                        lowerbound = 150
+                        lowerbound = default_min_peak
                         upperbound = 450
                     if lowerbound >= chosen_ival.max - chosen_ival.min \
                             or lowerbound >= buildme.max - buildme.min:
@@ -1548,7 +1548,7 @@ def connect_entries(bedf, reps):
                                 lowerbound = mean_width - mean_width / 2
                                 upperbound = mean_width + mean_width / 2
                             else:
-                                lowerbound = 150
+                                lowerbound = default_min_peak
                                 upperbound = 450
 
                             if lowerbound <= buildme.max - buildme.min:
@@ -1581,7 +1581,7 @@ def connect_entries(bedf, reps):
                             lowerbound = mean_width - mean_width / 2
                             upperbound = mean_width + mean_width / 2
                         else:
-                            lowerbound = 150
+                            lowerbound = default_min_peak
                             upperbound = 450
 
                         if lowerbound <= buildme.max - buildme.min:
@@ -1607,7 +1607,7 @@ def connect_entries(bedf, reps):
                         lowerbound = mean_width - mean_width / 2
                         upperbound = mean_width + mean_width / 2
                     else:
-                        lowerbound = 150
+                        lowerbound = default_min_peak
                         upperbound = 450
 
                     if lowerbound <= buildme.max - buildme.min:
@@ -1641,7 +1641,7 @@ def connect_entries(bedf, reps):
                 lowerbound = mean_width - mean_width / 2
                 upperbound = mean_width + mean_width / 2
             else:
-                lowerbound = 150
+                lowerbound = default_min_peak
                 upperbound = 450
 
             if lowerbound <= buildme.max - buildme.min:
@@ -1655,10 +1655,20 @@ def connect_entries(bedf, reps):
     return unions
 
 
+def rerankBed(bedfs):
+    for bedf in bedfs:
+        values = [e.signalValue for e in bedf]
+        ranks = len(values) - scipy.stats.rankdata(values) + 1
+        for (rank_v, bedent) in zip(ranks, bedf):
+            bedent.rank = rank_v
+
+
 def performrankprod(bedf, minentries=2, rankmethod="pvalue", specifyMax=None,
                     duphandling='average', random_seed=0.5,
                     alpha=0.05,
-                    filename="bedfile_unions.bed"):
+                    filename="bedfile_unions.bed",
+                    default_min_peak=20,
+                    print_pvals=True):
 
     # First create intersection and rank the entries in each replicate and return the rankproduct values
     ranks = rankreps(bedf, minentries, rankmethod, duphandling, random_seed, specifyMax)
@@ -1700,7 +1710,7 @@ def performrankprod(bedf, minentries=2, rankmethod="pvalue", specifyMax=None,
     collapsed = bed.BedFile(ranks[0][0], 'IDR')
     len1 = len(collapsed)
 
-    collapsed = connect_entries(collapsed, bedf)
+    collapsed = connect_entries(collapsed, bedf, default_min_peak)
 
     t3cnt = 0
     t1_unions = []
@@ -1759,13 +1769,16 @@ def performrankprod(bedf, minentries=2, rankmethod="pvalue", specifyMax=None,
         bed.writeBedFile(t1_unions, filename + "_T1.bed", format="Peaks")
         bed.writeBedFile(t1_unions + t2_unions, filename + "_T2.bed", format="Peaks")
         # mets = bed.BedFile(sortedUnions).getMetrics()
-        f = open(filename+'_log.txt', 'w')
-        f.write('Peaks only below q-value alpha:'+str(alpha)+', '+str(len(t1_unions))+'\n'+
-                'Peaks only below p-value binomial alpha:'+str(binomAlpha)+', '+str(len(t2_unions))+'\n'+
-                'Total Peaks:'+str(t3cnt+len(t1_unions)+len(t2_unions))+'\n')
+        with open(filename+'_log.txt', 'w') as f:
+            f.write('Peaks only below q-value alpha:'+str(alpha)+', '+str(len(t1_unions))+'\n'+
+                    'Peaks only below p-value binomial alpha:'+str(binomAlpha)+', '+str(len(t2_unions))+'\n'+
+                    'Total Peaks:'+str(t3cnt+len(t1_unions)+len(t2_unions))+'\n')
         # f.write('\n Chromosome'+'\t mean peak size\t standard deviation: \n')
         # for k, v in mets.items():
         #     f.write(k+'\t'+str(v[0])+'\t'+str(v[1])+'\n')
-        f.close()
+        if print_pvals:
+            with open(filename+"_pvals.txt", 'w') as p:
+                for pval in pvals:
+                    p.write(str(pval)+'\n')
 
     return collapsed, Pks, rpb_up, fdr

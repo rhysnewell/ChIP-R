@@ -74,6 +74,15 @@ class RankProdAnalysis(object):
                             default=0.05,
                             type=float,
                             required=False)
+        parser.add_argument("-s", "--size",
+                            help="Sets the default minimum peak size when peaks are reconnected after fragmentation. \n"
+                                 "Usually the minimum peak size is determined by the size of surrounding peaks, \n "
+                                 "but in the case that there are no surrounding peaks this value will be used \n"
+                                 "Default: 20",
+                            dest="size",
+                            default=20,
+                            type=int,
+                            required=False)
         args = parser.parse_args(sys.argv[1:])
         self.run_1(args)
 
@@ -92,7 +101,8 @@ class RankProdAnalysis(object):
                                  args.duphandling,
                                  args.random_seed,
                                  args.alpha,
-                                 args.output)
+                                 args.output,
+                                 args.size)
 
 
 

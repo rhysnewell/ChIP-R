@@ -730,130 +730,32 @@ def readBedFile(filename, format = 'Limited'):
     row = 0
     acceptHeaderRows = 1
     headerRow = None
+    sissrs = False
+    gem = False
+    start = False
     chroms = dict()
     for line in f:
         row += 1
         words = line.strip().split()
         if len(words) == 0:
-            continue # ignore empty lines
-        if words[0].strip().startswith('#'):
-            continue # comment
-        if words[0].strip().startswith('browser'):
-            continue # ignore
-        if words[0].strip().startswith('track'):
-            continue # ignore
-        if words[1].strip().startswith('start'):
-            continue # ignore
-        try:
-            if format.lower().startswith('bedpe'):
-                chrom1 = words[0]
-                chromStart1 = int(words[1])
-                chromEnd1 = int(words[2])
-                chrom2 = words[3]
-                chromStart2 = int(words[4])
-                chromEnd2 = int(words[5])
-
-                entry = BedPE(chrom1, chromStart1, chromEnd1, chrom2, chromStart2, chromEnd2)
-                if len(words) == 8:
-                    entry.addOption(PETs=int(words[6]), pValue=float(words[7]))
-                if len(words) == 13:
-                    entry.addOption(name1=words[6], name2=words[7], depth1=int(words[8]), depth2=int(words[9]),
-                                    PETs=int(words[10]), pValue=float(words[11]), fdr=float(words[12]))
-                if chrom1 == chrom2:
-                    tree = chroms.get(chrom1)
-                    if not tree:
-                        tree = ival.IntervalTree()
-                        chroms[chrom1] = tree
-                    iv1 = ival.Interval(entry.chromStart1, entry.chromEnd1)
-                    iv2 = ival.Interval(entry.chromStart2, entry.chromEnd2)
-                    tree.put(iv1, entry)
-                    tree.put(iv2, entry)
-
-                else:
-                    tree1 = chroms.get(chrom1)
-                    tree2 = chroms.get(chrom2)
-                    if not tree1:
-                        tree1 = ival.IntervalTree()
-                        chroms[chrom1] = tree1
-                    if not tree2:
-                        tree2 = ival.IntervalTree()
-                        chroms[chrom2] = tree2
-                    # put the entry in the interval tree for the appropriate chromosome
-                    iv1 = ival.Interval(entry.chromStart1, entry.chromEnd1)
-                    iv2 = ival.Interval(entry.chromStart2, entry.chromEnd2)
-                    tree1.put(iv1, entry)
-                    tree2.put(iv2, entry)
-            else:
+            continue
+        if words[0].strip().startswith('='):
+            sissrs = True
+            continue
+        if words[0].strip().startswith('Position'):
+            gem = True
+            continue
+        if sissrs:
+            if words[0].strip().startswith('-'):
+                start = True
+                continue
+            elif start:
                 chrom = words[0]
-                if format.lower().startswith('ccat'):
-                    chromStart = int(words[2])
-                    chromEnd = int(words[3])
-                else: # all other standard BED formats
-                    chromStart = int(words[1])
-                    chromEnd = int(words[2])
+                chromStart = int(words[1])
+                chromEnd = int(words[2])
                 entry = BedEntry(chrom, chromStart, chromEnd)
-                if format.lower().startswith('opt'):
-                    if len(words) >= 9:
-                        entry.addOption(name = words[3], score = float(words[4]), strand = words[5],
-                                        thickStart = int(words[6]), thickEnd = int(words[7]), itemRgb = words[8])
-                    elif len(words) >= 6:
-                        entry.addOption(name = words[3], score = float(words[4]), strand = words[5])
-                    elif len(words) >= 5:
-                        entry.addOption(name = words[3], score = float(words[4]))
-                    elif len(words) >= 4:
-                        entry.addOption(name = words[3])
-                    else:
-                        entry.addOption(name = '.', score = int(words[3]), strand = '.')
-                elif format.lower().startswith('bed6'):
-                    entry.addOption(name=words[3], score=float(words[4]), strand=words[5])
-                elif format.lower().startswith('strand'):
-                    if len(words) >= 4: # properly formatted
-                        entry.addOption(strand = words[3])
-                    if len(words) >= 5:
-                        entry.addOption(name = words[4])
-                elif format.lower().startswith('peak'):
-                    if len(words) >= 10: # narrowpeaks
-                        entry.addOption(name = words[3], score = int(words[4]), strand = words[5],
-                                        signalValue = float(words[6]), pValue = float(words[7]),
-                                        qValue = float(words[8]), peak = int(words[9]))
-                    else: # broadpeaks
-                        entry.addOption(name = words[3], score = int(words[4]), strand = words[5],
-                                        signalValue = float(words[6]), pValue = float(words[7]),
-                                        qValue = float(words[8]))
-                elif format.lower().startswith('rp'):
-                    entry.addOption(name=words[3], score=int(words[4]), strand=words[5],
-                                    signalValue=float(words[6]), pValue=float(words[7]),
-                                    qValue=float(words[8]), rank=[float(r) for r in list(words[9].split(","))])
-                elif format.lower().startswith('idr'):
-                    entry.addOption(name=words[3], score=int(words[4]), strand=words[5],
-                                    signalValue=float(words[6]), pValue=float(words[7]),
-                                    qValue=float(words[8]))
-                elif format.lower().startswith('2idr'):
-                    #For IDR input with actual IDR values
-                    entry.addOption(name=words[3], pValue=float(words[9]),
-                                    qValue=float(words[10]))
-                elif format.lower().startswith('summit'):
-                    if len(words) >= 9:
-                        entry.addOption(summit = int(words[4]), tags = int(words[5]), pValue = float(words[6]),
-                                        fold = float(words[7]), fdr = float(words[8]))
-                    else:
-                        entry.addOption(summit = int(words[4]), tags = int(words[5]),
-                                        pValue = float(words[6]), fold = float(words[7]))
-                elif format.lower().startswith('ccat'):
-                    entry.addOption(summit = int(words[1]) - entry.chromStart, tags = int(words[4]), bg = int(words[5]),
-                                    zscore = float(words[6]), fdr = float(words[7]), name = '.',
-                                    score = int(words[4]), strand = '.')
-                elif format.lower().startswith('crop'):
-                    entry.addOption(score = int(words[2]), name = '.', strand = '.')
-                    entry.chromEnd = entry.chromStart + 1
-                elif format.lower().startswith('bed12'):
-                    entry.addOption(name=words[3], score=float(words[4]), strand=words[5], thickStart=int(words[6]),
-                                    thickEnd=int(words[7]), itemRgb=words[8], blockCount=int(words[9]),
-                                    blockSizes=words[10], blockStarts=words[11])
-                elif format.lower().startswith('TSS'):
-                    entry.addOption(name=str(words[3]), gene=str(words[4]), strand=words[5])
-                elif format.lower().startswith('mspc'):
-                    entry.addOption(name=str(words[3]), signalValue=float(words[4]))
+                entry.addOption(signalValue=int(words[3]), name = " ", score = int(words[3]), strand = '.',
+                                pValue = float(-1), qValue = float(-1), peak = int(-1))
 
                 # check if the chromosome has been seen before
                 tree = chroms.get(chrom)
@@ -863,12 +765,159 @@ def readBedFile(filename, format = 'Limited'):
                 # put the entry in the interval tree for the appropriate chromosome
                 iv = ival.Interval(entry.chromStart, entry.chromEnd)
                 tree.put(iv, entry)
-        except RuntimeError as e:
-            if not acceptHeaderRows:
-                raise RuntimeError('Error in BED file at row %d (%s)' % (row, e.strerror))
             else:
-                headerRow = words
-                acceptHeaderRows -= 1 # count down the number of header rows that can occur
+                continue
+        elif gem:
+            chrom, centre = words[0].split(':')
+            centre = int(centre)
+            chromStart = centre - 50
+            chromEnd = centre + 50
+            entry = BedEntry(chrom, chromStart, chromEnd)
+            entry.addOption(signalValue=float(words[1]), name=" ", score=float(words[7]), strand=words[13], peak=centre,
+                            pValue=float(words[6]), qValue=float(words[5]))
+            tree = chroms.get(chrom)
+            if not tree:
+                tree = ival.IntervalTree()
+                chroms[chrom] = tree
+            # put the entry in the interval tree for the appropriate chromosome
+            iv = ival.Interval(entry.chromStart, entry.chromEnd)
+            tree.put(iv, entry)
+        else:
+            if len(words) == 0:
+                continue # ignore empty lines
+            if words[0].strip().startswith('#'):
+                continue # comment
+            if words[0].strip().startswith('browser'):
+                continue # ignore
+            if words[0].strip().startswith('track'):
+                continue # ignore
+            if words[1].strip().startswith('start'):
+                continue # ignore
+            try:
+                if format.lower().startswith('bedpe'):
+                    chrom1 = words[0]
+                    chromStart1 = int(words[1])
+                    chromEnd1 = int(words[2])
+                    chrom2 = words[3]
+                    chromStart2 = int(words[4])
+                    chromEnd2 = int(words[5])
+
+                    entry = BedPE(chrom1, chromStart1, chromEnd1, chrom2, chromStart2, chromEnd2)
+                    if len(words) == 8:
+                        entry.addOption(PETs=int(words[6]), pValue=float(words[7]))
+                    if len(words) == 13:
+                        entry.addOption(name1=words[6], name2=words[7], depth1=int(words[8]), depth2=int(words[9]),
+                                        PETs=int(words[10]), pValue=float(words[11]), fdr=float(words[12]))
+                    if chrom1 == chrom2:
+                        tree = chroms.get(chrom1)
+                        if not tree:
+                            tree = ival.IntervalTree()
+                            chroms[chrom1] = tree
+                        iv1 = ival.Interval(entry.chromStart1, entry.chromEnd1)
+                        iv2 = ival.Interval(entry.chromStart2, entry.chromEnd2)
+                        tree.put(iv1, entry)
+                        tree.put(iv2, entry)
+
+                    else:
+                        tree1 = chroms.get(chrom1)
+                        tree2 = chroms.get(chrom2)
+                        if not tree1:
+                            tree1 = ival.IntervalTree()
+                            chroms[chrom1] = tree1
+                        if not tree2:
+                            tree2 = ival.IntervalTree()
+                            chroms[chrom2] = tree2
+                        # put the entry in the interval tree for the appropriate chromosome
+                        iv1 = ival.Interval(entry.chromStart1, entry.chromEnd1)
+                        iv2 = ival.Interval(entry.chromStart2, entry.chromEnd2)
+                        tree1.put(iv1, entry)
+                        tree2.put(iv2, entry)
+                else:
+                    chrom = words[0]
+                    if format.lower().startswith('ccat'):
+                        chromStart = int(words[2])
+                        chromEnd = int(words[3])
+                    else: # all other standard BED formats
+                        chromStart = int(words[1])
+                        chromEnd = int(words[2])
+                    entry = BedEntry(chrom, chromStart, chromEnd)
+                    if format.lower().startswith('opt'):
+                        if len(words) >= 9:
+                            entry.addOption(name = words[3], score = float(words[4]), strand = words[5],
+                                            thickStart = int(words[6]), thickEnd = int(words[7]), itemRgb = words[8])
+                        elif len(words) >= 6:
+                            entry.addOption(name = words[3], score = float(words[4]), strand = words[5])
+                        elif len(words) >= 5:
+                            entry.addOption(name = words[3], score = float(words[4]))
+                        elif len(words) >= 4:
+                            entry.addOption(name = words[3])
+                        else:
+                            entry.addOption(name = '.', score = int(words[3]), strand = '.')
+                    elif format.lower().startswith('bed6'):
+                        entry.addOption(name=words[3], score=float(words[4]), strand=words[5])
+                    elif format.lower().startswith('strand'):
+                        if len(words) >= 4: # properly formatted
+                            entry.addOption(strand = words[3])
+                        if len(words) >= 5:
+                            entry.addOption(name = words[4])
+                    elif format.lower().startswith('peak'):
+                        if len(words) >= 10: # narrowpeaks
+                            entry.addOption(name = words[3], score = int(words[4]), strand = words[5],
+                                            signalValue = float(words[6]), pValue = float(words[7]),
+                                            qValue = float(words[8]), peak = int(words[9]))
+                        else: # broadpeaks
+                            entry.addOption(name = words[3], score = int(words[4]), strand = words[5],
+                                            signalValue = float(words[6]), pValue = float(words[7]),
+                                            qValue = float(words[8]))
+                    elif format.lower().startswith('rp'):
+                        entry.addOption(name=words[3], score=int(words[4]), strand=words[5],
+                                        signalValue=float(words[6]), pValue=float(words[7]),
+                                        qValue=float(words[8]), rank=[float(r) for r in list(words[9].split(","))])
+                    elif format.lower().startswith('idr'):
+                        entry.addOption(name=words[3], score=int(words[4]), strand=words[5],
+                                        signalValue=float(words[6]), pValue=float(words[7]),
+                                        qValue=float(words[8]))
+                    elif format.lower().startswith('2idr'):
+                        #For IDR input with actual IDR values
+                        entry.addOption(name=words[3], pValue=float(words[9]),
+                                        qValue=float(words[10]))
+                    elif format.lower().startswith('summit'):
+                        if len(words) >= 9:
+                            entry.addOption(summit = int(words[4]), tags = int(words[5]), pValue = float(words[6]),
+                                            fold = float(words[7]), fdr = float(words[8]))
+                        else:
+                            entry.addOption(summit = int(words[4]), tags = int(words[5]),
+                                            pValue = float(words[6]), fold = float(words[7]))
+                    elif format.lower().startswith('ccat'):
+                        entry.addOption(summit = int(words[1]) - entry.chromStart, tags = int(words[4]), bg = int(words[5]),
+                                        zscore = float(words[6]), fdr = float(words[7]), name = '.',
+                                        score = int(words[4]), strand = '.')
+                    elif format.lower().startswith('crop'):
+                        entry.addOption(score = int(words[2]), name = '.', strand = '.')
+                        entry.chromEnd = entry.chromStart + 1
+                    elif format.lower().startswith('bed12'):
+                        entry.addOption(name=words[3], score=float(words[4]), strand=words[5], thickStart=int(words[6]),
+                                        thickEnd=int(words[7]), itemRgb=words[8], blockCount=int(words[9]),
+                                        blockSizes=words[10], blockStarts=words[11])
+                    elif format.lower().startswith('TSS'):
+                        entry.addOption(name=str(words[3]), gene=str(words[4]), strand=words[5])
+                    elif format.lower().startswith('mspc'):
+                        entry.addOption(name=str(words[3]), signalValue=float(words[4]))
+
+                    # check if the chromosome has been seen before
+                    tree = chroms.get(chrom)
+                    if not tree:
+                        tree = ival.IntervalTree()
+                        chroms[chrom] = tree
+                    # put the entry in the interval tree for the appropriate chromosome
+                    iv = ival.Interval(entry.chromStart, entry.chromEnd)
+                    tree.put(iv, entry)
+            except RuntimeError as e:
+                if not acceptHeaderRows:
+                    raise RuntimeError('Error in BED file at row %d (%s)' % (row, e.strerror))
+                else:
+                    headerRow = words
+                    acceptHeaderRows -= 1 # count down the number of header rows that can occur
     f.close()
     return chroms
 

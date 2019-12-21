@@ -1288,7 +1288,6 @@ def collapse(bedf, idr=False):
                         ol4.append(0)
                     ol5.append(entry.signalValue)
 
-
                 else:
                     for o in ol3:
                         if overlaps(o, entry):
@@ -1304,6 +1303,7 @@ def collapse(bedf, idr=False):
                             break
                         else:
                             cnt += 1
+
                 if cnt > len(ol3):
                     if len(ol3) > 1:
                         mer = bed.BedEntry(chrom, min(ol1), max(ol2))
@@ -1479,15 +1479,16 @@ def thresholdCalc(p, k=6):
     return bs, ps, pits, idx
 
 
-def connect_entries(bedf, reps, default_min_peak=20):
+def connect_entries(bedf, reps, default_min_peak=20, broadpeaks=False):
     """
     connect_entries
     Modified version of union function that takes only one bedfile input and connects entries that are within 1 base pair
     of each other and have a significantly close enough rank product p-value.
 
-    Prevents over fractionation of peaks.
+    Prevents over fragmentation of peaks.
     """
     chroms = bedf.chroms.keys()
+
     unions = []
     for chrom in chroms:
         genarr = bedf.generate(chrom)
@@ -1514,18 +1515,8 @@ def connect_entries(bedf, reps, default_min_peak=20):
 
                 if buildme.dist(chosen_ival, centre2centre=False) < 1:
                     # Test if either interval is shorter than expected
-                    closest_widths = []
-                    for rep in reps:
-                        closest = rep.getOneOfClosest(chosen)
-                        if closest is not None:
-                            closest_widths.append(closest.chromEnd - closest.chromStart)
-                    if len(closest_widths) != 0:
-                        mean_width = np.mean(closest_widths)
-                        lowerbound = mean_width - mean_width / 2
-                        upperbound = mean_width + mean_width / 2
-                    else:
-                        lowerbound = default_min_peak
-                        upperbound = 450
+                    lowerbound = calcLowerBound(reps, chosen, default_min_peak, broadpeaks)
+
                     if lowerbound >= chosen_ival.max - chosen_ival.min \
                             or lowerbound >= buildme.max - buildme.min:
                         # If so, test if they should be joined
@@ -1538,18 +1529,7 @@ def connect_entries(bedf, reps, default_min_peak=20):
 
                             # buildme is complete, stash the buildme interval (if sufficiently supported),
                             # then create a new buildme
-                            closest_widths = []
-                            for rep in reps:
-                                closest = rep.getOneOfClosest(chosen)
-                                if closest is not None:
-                                    closest_widths.append(closest.chromEnd - closest.chromStart)
-                            if len(closest_widths) != 0:
-                                mean_width = np.mean(closest_widths)
-                                lowerbound = mean_width - mean_width / 2
-                                upperbound = mean_width + mean_width / 2
-                            else:
-                                lowerbound = default_min_peak
-                                upperbound = 450
+                            lowerbound = calcLowerBound(reps, chosen, default_min_peak, broadpeaks)
 
                             if lowerbound <= buildme.max - buildme.min:
                                 merged = bed.BedEntry(chrom, buildme.min, buildme.max)
@@ -1571,18 +1551,7 @@ def connect_entries(bedf, reps, default_min_peak=20):
 
                         # buildme is complete, stash the buildme interval (if sufficiently supported),
                         # then create a new buildme
-                        closest_widths = []
-                        for rep in reps:
-                            closest = rep.getOneOfClosest(chosen)
-                            if closest is not None:
-                                closest_widths.append(closest.chromEnd - closest.chromStart)
-                        if len(closest_widths) != 0:
-                            mean_width = np.mean(closest_widths)
-                            lowerbound = mean_width - mean_width / 2
-                            upperbound = mean_width + mean_width / 2
-                        else:
-                            lowerbound = default_min_peak
-                            upperbound = 450
+                        lowerbound = calcLowerBound(reps, chosen, default_min_peak, broadpeaks)
 
                         if lowerbound <= buildme.max - buildme.min:
                             merged = bed.BedEntry(chrom, buildme.min, buildme.max)
@@ -1597,18 +1566,7 @@ def connect_entries(bedf, reps, default_min_peak=20):
 
                     # buildme is complete, stash the buildme interval (if sufficiently supported),
                     # then create a new buildme
-                    closest_widths = []
-                    for rep in reps:
-                        closest = rep.getOneOfClosest(chosen)
-                        if closest is not None:
-                            closest_widths.append(closest.chromEnd - closest.chromStart)
-                    if len(closest_widths) != 0:
-                        mean_width = np.mean(closest_widths)
-                        lowerbound = mean_width - mean_width / 2
-                        upperbound = mean_width + mean_width / 2
-                    else:
-                        lowerbound = default_min_peak
-                        upperbound = 450
+                    lowerbound = calcLowerBound(reps, chosen, default_min_peak, broadpeaks)
 
                     if lowerbound <= buildme.max - buildme.min:
                         merged = bed.BedEntry(chrom, buildme.min, buildme.max)
@@ -1631,18 +1589,7 @@ def connect_entries(bedf, reps, default_min_peak=20):
         # there is probably a final entry, which also needs to be stashed away
         s_ind = set(indexs)
         if buildme is not None:
-            closest_widths = []
-            for rep in reps:
-                closest = rep.getOneOfClosest(chosen)
-                if closest is not None:
-                    closest_widths.append(closest.chromEnd - closest.chromStart)
-            if len(closest_widths) != 0:
-                mean_width = np.mean(closest_widths)
-                lowerbound = mean_width - mean_width / 2
-                upperbound = mean_width + mean_width / 2
-            else:
-                lowerbound = default_min_peak
-                upperbound = 450
+            lowerbound = calcLowerBound(reps, chosen, default_min_peak, broadpeaks)
 
             if lowerbound <= buildme.max - buildme.min:
                 merged = bed.BedEntry(chrom, buildme.min, buildme.max)
@@ -1655,6 +1602,25 @@ def connect_entries(bedf, reps, default_min_peak=20):
     return unions
 
 
+def calcLowerBound(reps, chosen, default_min_peak=20, broadpeaks=False):
+    closest_widths = []
+    for rep in reps:
+        closest_peaks = rep.getClosest(chosen)
+        if closest_peaks is not None:
+            for closest in closest_peaks:
+                closest_widths.append(closest.chromEnd - closest.chromStart)
+    if len(closest_widths) != 0 and not broadpeaks:
+        mean_width = np.mean(closest_widths)
+        lowerbound = mean_width - mean_width / 2
+        upperbound = mean_width + mean_width / 2
+    elif broadpeaks:
+        lowerbound = default_min_peak
+    else:
+        lowerbound = default_min_peak
+        upperbound = 450
+
+    return lowerbound
+
 def rerankBed(bedfs):
     for bedf in bedfs:
         values = [e.signalValue for e in bedf]
@@ -1662,13 +1628,31 @@ def rerankBed(bedfs):
         for (rank_v, bedent) in zip(ranks, bedf):
             bedent.rank = rank_v
 
+def scale_values(pvals, binom_alpha):
+    scaled_vals = []
+    pvals = np.array(pvals)
+    print(pvals)
+    bmin = min(pvals[pvals <= binom_alpha])
+    bmax = max(pvals[pvals <= binom_alpha])
+    rmin = min(pvals[pvals > binom_alpha])
+    rmax = max(pvals[pvals > binom_alpha])
+    for val in pvals:
+        if val <= binom_alpha:
+            scaled_val = ((val - bmin)/(bmax-bmin))*(0.05)
+            scaled_vals.append(scaled_val)
+        else:
+            scaled_val = ((val - rmin) / (rmax - rmin)) * (0.95) + 0.05
+            scaled_vals.append(scaled_val)
+    return scaled_vals
 
-def performrankprod(bedf, minentries=2, rankmethod="pvalue", specifyMax=None,
+
+def performrankprod(bedf, minentries=2, rankmethod="signalvalue", specifyMax=None,
                     duphandling='average', random_seed=0.5,
                     alpha=0.05,
                     filename="bedfile_unions.bed",
                     default_min_peak=20,
-                    print_pvals=True):
+                    print_pvals=True,
+                    broadpeaks=False):
 
     # First create intersection and rank the entries in each replicate and return the rankproduct values
     ranks = rankreps(bedf, minentries, rankmethod, duphandling, random_seed, specifyMax)
@@ -1685,8 +1669,8 @@ def performrankprod(bedf, minentries=2, rankmethod="pvalue", specifyMax=None,
     else:
         print('No binomial convergence, defaulting to 0.1')
         binomAlpha = 0.1
-    print('Binomial threshold:'+str(binomAlpha))
-
+    # print('Binomial threshold:'+str(binomAlpha))
+    # rpb_up = scale_values(rpb_up, binomAlpha)
     # Perform multiple hypothesis testing correction upon the pvals
     fdr = multipletesting.fdrcorrection(rpb_up)
 
@@ -1710,11 +1694,11 @@ def performrankprod(bedf, minentries=2, rankmethod="pvalue", specifyMax=None,
     collapsed = bed.BedFile(ranks[0][0], 'IDR')
     len1 = len(collapsed)
 
-    collapsed = connect_entries(collapsed, bedf, default_min_peak)
+    collapsed = connect_entries(collapsed, bedf, default_min_peak, broadpeaks)
 
     t3cnt = 0
     t1_unions = []
-    t2_unions = []
+    # t2_unions = []
     t3_unions = []
     pvals = []
 
@@ -1730,49 +1714,34 @@ def performrankprod(bedf, minentries=2, rankmethod="pvalue", specifyMax=None,
                  Should not be discarded as its peaks still appear in majority of replicates.
         """
         pvals.append(v.pValue)
-        if alpha <= binomAlpha:
-            if v.qValue <= alpha:
-                v.addOption(name='T1_peak_' + str(i),
-                            strand='.')
-                t1_unions.append(v)
-            elif v.pValue <= binomAlpha:
-                v.addOption(name='T2_peak_' + str(i),
-                            strand='.')
-                t2_unions.append(v)
-            else:
-                t3cnt += 1
-                v.addOption(name='T3_peak_' + str(i),
-                            strand='.')
-                t3_unions.append(v)
+        if v.pValue <= alpha:
+            v.addOption(name='optimal_peak_' + str(i),
+                        strand='.')
+            t1_unions.append(v)
+        # elif v.pValue <= binomAlpha:
+        #     v.addOption(name='T2_peak_' + str(i),
+        #                 strand='.')
+        #     t2_unions.append(v)
         else:
-            if v.pValue <= binomAlpha:
-                v.addOption(name='T2_peak_' + str(i),
-                            strand='.')
-                t2_unions.append(v)
-            elif v.qValue <= alpha:
-                v.addOption(name='T1_peak_' + str(i),
-                            strand='.')
-                t1_unions.append(v)
-            else:
-                t3cnt += 1
-                v.addOption(name='T3_peak_' + str(i),
-                            strand='.')
-                t3_unions.append(v)
+            t3cnt += 1
+            v.addOption(name='irreproducible_peak_' + str(i),
+                        strand='.')
+            t3_unions.append(v)
 
     sortedUnions = [x for _,x in sorted(zip(pvals, collapsed), key = lambda pair:pair[0])]
-    print(round((len(t1_unions)/len(collapsed))*100, 2), "% Tier 1 intersections")
-    print(round((len(t2_unions)/len(collapsed))*100, 2), "% Tier 2 intersections")
-    print(round((t3cnt/len(collapsed))*100, 2), "% Tier 3 intersections")
+    print(round((len(t1_unions)/len(collapsed))*100, 2), "% Optimal intersections")
+    # print(round((len(t2_unions)/len(collapsed))*100, 2), "% Tier 2 intersections")
+    print(round((t3cnt/len(collapsed))*100, 2), "% Irreproducible intersections")
 
     if filename is not None:
-        bed.writeBedFile(sortedUnions, filename + "_ALL.bed", format="Peaks")
-        bed.writeBedFile(t1_unions, filename + "_T1.bed", format="Peaks")
-        bed.writeBedFile(t1_unions + t2_unions, filename + "_T2.bed", format="Peaks")
+        bed.writeBedFile(sortedUnions, filename + "_all.bed", format="Peaks")
+        bed.writeBedFile(t1_unions, filename + "_optimal.bed", format="Peaks")
+        # bed.writeBedFile(t1_unions + t2_unions, filename + "_T2.bed", format="Peaks")
         # mets = bed.BedFile(sortedUnions).getMetrics()
-        with open(filename+'_log.txt', 'w') as f:
-            f.write('Peaks only below q-value alpha:'+str(alpha)+', '+str(len(t1_unions))+'\n'+
-                    'Peaks only below p-value binomial alpha:'+str(binomAlpha)+', '+str(len(t2_unions))+'\n'+
-                    'Total Peaks:'+str(t3cnt+len(t1_unions)+len(t2_unions))+'\n')
+        # with open(filename+'_log.txt', 'w') as f:
+        #     f.write('Peaks only below q-value alpha:'+str(alpha)+', '+str(len(t1_unions))+'\n'+
+        #             'Peaks only below p-value binomial alpha:'+str(binomAlpha)+', '+str(len(t2_unions))+'\n'+
+        #             'Total Peaks:'+str(t3cnt+len(t1_unions))+'\n')
         # f.write('\n Chromosome'+'\t mean peak size\t standard deviation: \n')
         # for k, v in mets.items():
         #     f.write(k+'\t'+str(v[0])+'\t'+str(v[1])+'\n')

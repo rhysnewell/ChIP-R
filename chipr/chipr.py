@@ -48,6 +48,11 @@ class RankProdAnalysis(object):
                             default='signalvalue',
                             type=str,
                             required=False)
+        parser.add_argument("--broadpeaks",
+                            help="Specifies whether the input peaks are broad",
+                            dest="broadpeaks",
+                            action="store_true",
+                            required=False)
         parser.add_argument("--duphandling",
                             help="Specifies how to handle entries that are ranked equally within a replicate "
                                  "Can either take the 'average' ranks or a 'random' rearrangement of the ordinal ranks \n"
@@ -102,7 +107,8 @@ class RankProdAnalysis(object):
                                  args.random_seed,
                                  args.alpha,
                                  args.output,
-                                 args.size)
+                                 args.size,
+                                 args.broadpeaks)
 
 
 

@@ -1010,9 +1010,9 @@ def TADBoundary(BedFile, BedPE):
 
 def writeBedFile(entries, filename, format = 'BED6', header = None):
     """ Save the BED entries to a BED file.
-        format - the format to use for WRITING, currently only BED6 ('Optional' 6-col format) is supported.
+        format - the format to use for WRITING
     """
-    f = open(filename, 'w')
+    f = open(filename, 'w+')
     if header:
         f.write(header + '\n')
     for row in entries:

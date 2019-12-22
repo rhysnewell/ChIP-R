@@ -209,6 +209,8 @@ def rankreps(bedf, minentries=None, rankmethod='signalvalue', duphandling='avera
         # All pseudo-peaks in all replicates receive rank n
         # zero_up = [len(rep)]*zeros
         zmean = np.mean(zero_up)
+        if math.isnan(zmean):
+            zmean = 1
         print(str(zeros) + ' Pseudo-peaks used for replicate number: ' + str(idx + 1))
         for i, ent in enumerate(rep):
             try:
@@ -1013,7 +1015,7 @@ def start(vec):
     return startent
 
 
-def union(bedfiles, minentries=2, maxdist=1):
+def union(bedfiles, minentries=2, maxdist=2):
     '''
     union
 
@@ -1108,55 +1110,58 @@ def union(bedfiles, minentries=2, maxdist=1):
                         # buildme is complete, stash the buildme interval (if sufficiently supported),
                         # then create a new buildme
                         s_ind = set(indexs)
-                        if len(stashed) >= minentries and len(s_ind) >= minentries:
+                        if len(stashed) >= minentries and len(s_ind) >= minentries and (buildme.max - buildme.min) > 0:
                             merged = merge(chrom, buildme.min, buildme.max, stashed, minentries, N=len(bedfiles))
                             extentries = merged[0]
                             try:
                                 for x in range(len(extentries)):
-                                    unions.append(merged[0][x])
+                                    if merged[0][x].chromEnd - merged[0][x].chromStart > 0:
+                                        unions.append(merged[0][x])
+                                        for i in range(len(entryarr_prev)):
+                                            if entryarr_prev[i] in stashed:
+                                                check = entryarr_prev[i].getInterval()
+                                                mergcheck = merged[0][x].getInterval()
+                                                if check.isectStrict(mergcheck):
+                                                    stored[i] = copy.deepcopy(entryarr_prev[i])
+                                                else:
+                                                    stored[i] = 0
+
+                                            elif entryarr[i] in stashed:
+                                                check = entryarr[i].getInterval()
+                                                mergcheck = merged[0][x].getInterval()
+                                                if check.isectStrict(mergcheck):
+                                                    stored[i] = copy.deepcopy(entryarr[i])
+                                                else:
+                                                    stored[i] = 0
+
+                                            else:
+                                                stored[i] = 0
+                                        for i in range(len(stored)):
+                                            entries[i].append(stored[i])
+
+                            except TypeError:
+                                if merged[0].chromEnd - merged[0].chromStart > 0:
+
+                                    unions.append(merged[0])
                                     for i in range(len(entryarr_prev)):
                                         if entryarr_prev[i] in stashed:
                                             check = entryarr_prev[i].getInterval()
-                                            mergcheck = merged[0][x].getInterval()
+                                            mergcheck = merged[0].getInterval()
                                             if check.isectStrict(mergcheck):
                                                 stored[i] = copy.deepcopy(entryarr_prev[i])
                                             else:
                                                 stored[i] = 0
-
                                         elif entryarr[i] in stashed:
                                             check = entryarr[i].getInterval()
-                                            mergcheck = merged[0][x].getInterval()
+                                            mergcheck = merged[0].getInterval()
                                             if check.isectStrict(mergcheck):
                                                 stored[i] = copy.deepcopy(entryarr[i])
                                             else:
                                                 stored[i] = 0
-
                                         else:
                                             stored[i] = 0
                                     for i in range(len(stored)):
                                         entries[i].append(stored[i])
-
-                            except TypeError:
-                                unions.append(merged[0])
-                                for i in range(len(entryarr_prev)):
-                                    if entryarr_prev[i] in stashed:
-                                        check = entryarr_prev[i].getInterval()
-                                        mergcheck = merged[0].getInterval()
-                                        if check.isectStrict(mergcheck):
-                                            stored[i] = copy.deepcopy(entryarr_prev[i])
-                                        else:
-                                            stored[i] = 0
-                                    elif entryarr[i] in stashed:
-                                        check = entryarr[i].getInterval()
-                                        mergcheck = merged[0].getInterval()
-                                        if check.isectStrict(mergcheck):
-                                            stored[i] = copy.deepcopy(entryarr[i])
-                                        else:
-                                            stored[i] = 0
-                                    else:
-                                        stored[i] = 0
-                                for i in range(len(stored)):
-                                    entries[i].append(stored[i])
 
 
                             idx += 1
@@ -1173,55 +1178,59 @@ def union(bedfiles, minentries=2, maxdist=1):
 
         # there is probably a final entry, which also needs to be stashed away
         s_ind = set(indexs)
-        if buildme is not None and len(stashed) >= minentries and len(s_ind) >= minentries:
+        if buildme is not None and len(stashed) >= minentries and len(s_ind) >= minentries and (buildme.max - buildme.min) > 0:
             merged = merge(chrom, buildme.min, buildme.max, stashed, minentries, N=len(bedfiles))
             extentries = merged[0]
             try:
                 for x in range(len(extentries)):
-                    unions.append(merged[0][x])
+                    if merged[0][x].chromEnd - merged[0][x].chromStart > 0:
+
+                        unions.append(merged[0][x])
+                        for i in range(len(entryarr_prev)):
+                            if entryarr_prev[i] in stashed:
+                                check = entryarr_prev[i].getInterval()
+                                mergcheck = merged[0][x].getInterval()
+                                if check.isectStrict(mergcheck):
+                                    stored[i] = copy.deepcopy(entryarr_prev[i])
+                                else:
+                                    stored[i] = 0
+
+                            elif entryarr[i] in stashed:
+                                check = entryarr[i].getInterval()
+                                mergcheck = merged[0][x].getInterval()
+                                if check.isectStrict(mergcheck):
+                                    stored[i] = copy.deepcopy(entryarr[i])
+                                else:
+                                    stored[i] = 0
+
+                            else:
+                                stored[i] = 0
+                        for i in range(len(stored)):
+                            entries[i].append(stored[i])
+
+            except TypeError:
+                if merged[0].chromEnd - merged[0].chromStart > 0:
+
+                    unions.append(merged[0])
                     for i in range(len(entryarr_prev)):
                         if entryarr_prev[i] in stashed:
                             check = entryarr_prev[i].getInterval()
-                            mergcheck = merged[0][x].getInterval()
+                            mergcheck = merged[0].getInterval()
                             if check.isectStrict(mergcheck):
                                 stored[i] = copy.deepcopy(entryarr_prev[i])
                             else:
                                 stored[i] = 0
-
                         elif entryarr[i] in stashed:
                             check = entryarr[i].getInterval()
-                            mergcheck = merged[0][x].getInterval()
+                            mergcheck = merged[0].getInterval()
                             if check.isectStrict(mergcheck):
                                 stored[i] = copy.deepcopy(entryarr[i])
                             else:
                                 stored[i] = 0
-
                         else:
                             stored[i] = 0
                     for i in range(len(stored)):
                         entries[i].append(stored[i])
-
-            except TypeError:
-                unions.append(merged[0])
-                for i in range(len(entryarr_prev)):
-                    if entryarr_prev[i] in stashed:
-                        check = entryarr_prev[i].getInterval()
-                        mergcheck = merged[0].getInterval()
-                        if check.isectStrict(mergcheck):
-                            stored[i] = copy.deepcopy(entryarr_prev[i])
-                        else:
-                            stored[i] = 0
-                    elif entryarr[i] in stashed:
-                        check = entryarr[i].getInterval()
-                        mergcheck = merged[0].getInterval()
-                        if check.isectStrict(mergcheck):
-                            stored[i] = copy.deepcopy(entryarr[i])
-                        else:
-                            stored[i] = 0
-                    else:
-                        stored[i] = 0
-                for i in range(len(stored)):
-                    entries[i].append(stored[i])
 
             idx += 1
 
@@ -1759,19 +1768,32 @@ if __name__ == '__main__':
     entry1_1 = bed.BedEntry('X', 8000, 9000)
     entry1_1.signalValue = 10
     entry1_2 = bed.BedEntry('X', 80, 900)
-    entry1_2.signalValue = 2
+    entry1_2.signalValue = 3
     bed1 = bed.BedFile([entry1_1, entry1_2])
-    entry2 = bed.BedEntry('X', 8500, 9000)
-    entry2.signalValue = 10
-    bed2 = bed.BedFile([entry2])
-    entry3 = bed.BedEntry('X', 7500, 9000)
-    entry3.signalValue = 10
-    bed3 = bed.BedFile([entry3])
 
-    bedf = [bed1, bed2, bed3]
-    minentries = 1
+    entry2_1 = bed.BedEntry('X', 8500, 9000)
+    entry2_2 = bed.BedEntry('X', 80, 900)
+    entry2_1.signalValue = 10
+    entry2_2.signalValue = 3
+    bed2 = bed.BedFile([entry2_1, entry2_2])
 
-    unions = union([bed1, bed2, bed3], 1)
+    entry3_1 = bed.BedEntry('X', 7500, 9000)
+    entry3_2 = bed.BedEntry('X', 80, 900)
+    entry3_1.signalValue = 10
+    entry3_2.signalValue = 3
+    bed3 = bed.BedFile([entry3_1, entry3_2])
+
+    entry4_1 = bed.BedEntry('X', 7500, 8999)
+    entry4_2 = bed.BedEntry('X', 80, 900)
+
+    entry4_1.signalValue = 10
+    entry4_2.signalValue = 3
+    bed4 = bed.BedFile([entry4_1, entry4_2])
+
+    bedf = [bed1, bed2, bed3, bed4]
+    minentries = 2
+
+    unions = union([bed1, bed2, bed3, bed4], 2)
     for fragment in unions[0]:
         print(fragment)
 
@@ -1813,6 +1835,9 @@ if __name__ == '__main__':
                                      pValue=2.5e-20,
                                      qValue=2.5e-20)
     collapsed = bed.BedFile(ranks[0][0], 'IDR')
+    for ent in collapsed:
+        print(ent)
+
     len1 = len(collapsed)
 
     connected = connect_entries(collapsed, bedf, 20, True)

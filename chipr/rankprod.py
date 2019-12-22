@@ -745,7 +745,6 @@ def matmult(a, b):
 
 def clip(interval, N, min_N, minsize=0):
     '''''
-
     clip
 
     Determining the set of intervals that define the N-fold intersection between the input intervals
@@ -1000,7 +999,10 @@ def compareTo(this_min, this_max, that_min, that_max):
 
 
 def start(vec):
-    """Return the minimum start point of a vector of entries"""
+
+    """
+    Return the minimum start point of a vector of entries
+    """
     vec = [x for x in vec if x != 0 and x is not None]
     low = vec[0].chromStart
     startent = vec[0]
@@ -1513,7 +1515,7 @@ def connect_entries(bedf, reps, default_min_peak=20, broadpeaks=False):
                 chosen_ival = ival.Interval(chosen.chromStart, chosen.chromEnd)
                 chosen_vars = chosen.pValue
 
-                if buildme.dist(chosen_ival, centre2centre=False) < 1:
+                if buildme.dist(chosen_ival, centre2centre=False) <= 1:
                     # Test if either interval is shorter than expected
                     lowerbound = calcLowerBound(reps, chosen, default_min_peak, broadpeaks)
 
@@ -1715,7 +1717,7 @@ def performrankprod(bedf, minentries=2, rankmethod="signalvalue", specifyMax=Non
         """
         pvals.append(v.pValue)
         if v.pValue <= alpha:
-            v.addOption(name='optimal_peak_' + str(i),
+            v.addOption(name='primary_peak_' + str(i),
                         strand='.')
             t1_unions.append(v)
         # elif v.pValue <= binomAlpha:
@@ -1724,30 +1726,95 @@ def performrankprod(bedf, minentries=2, rankmethod="signalvalue", specifyMax=Non
         #     t2_unions.append(v)
         else:
             t3cnt += 1
-            v.addOption(name='irreproducible_peak_' + str(i),
+            v.addOption(name='secondary_peak_' + str(i),
                         strand='.')
             t3_unions.append(v)
 
-    sortedUnions = [x for _,x in sorted(zip(pvals, collapsed), key = lambda pair:pair[0])]
-    print(round((len(t1_unions)/len(collapsed))*100, 2), "% Optimal intersections")
+    sortedUnions = [x for _, x in sorted(zip(pvals, collapsed), key = lambda pair:pair[0])]
+    print(round((len(t1_unions)/len(collapsed))*100, 2), "% Primary peaks")
     # print(round((len(t2_unions)/len(collapsed))*100, 2), "% Tier 2 intersections")
-    print(round((t3cnt/len(collapsed))*100, 2), "% Irreproducible intersections")
+    print(round((t3cnt/len(collapsed))*100, 2), "% Secondary peaks")
 
     if filename is not None:
         bed.writeBedFile(sortedUnions, filename + "_all.bed", format="Peaks")
         bed.writeBedFile(t1_unions, filename + "_optimal.bed", format="Peaks")
         # bed.writeBedFile(t1_unions + t2_unions, filename + "_T2.bed", format="Peaks")
-        # mets = bed.BedFile(sortedUnions).getMetrics()
-        # with open(filename+'_log.txt', 'w') as f:
-        #     f.write('Peaks only below q-value alpha:'+str(alpha)+', '+str(len(t1_unions))+'\n'+
-        #             'Peaks only below p-value binomial alpha:'+str(binomAlpha)+', '+str(len(t2_unions))+'\n'+
-        #             'Total Peaks:'+str(t3cnt+len(t1_unions))+'\n')
-        # f.write('\n Chromosome'+'\t mean peak size\t standard deviation: \n')
-        # for k, v in mets.items():
-        #     f.write(k+'\t'+str(v[0])+'\t'+str(v[1])+'\n')
-        if print_pvals:
-            with open(filename+"_pvals.txt", 'w') as p:
-                for pval in pvals:
-                    p.write(str(pval)+'\n')
+        mets = bed.BedFile(sortedUnions).getMetrics()
+        with open(filename+'_log.txt', 'w') as f:
+            f.write('Primary Peaks: '+str(len(t1_unions))+'\n'+
+                    'Secondary Peaks: '+str(t3cnt)+'\n'+
+                    'Total Peaks:'+str(t3cnt+len(t1_unions))+'\n')
+            f.write('\n Chromosome'+'\t mean peak size\t standard deviation: \n')
+            for k, v in mets.items():
+                f.write(k+'\t'+str(v[0])+'\t'+str(v[1])+'\n')
+        # if print_pvals:
+        #     with open(filename+"_pvals.txt", 'w') as p:
+        #         for pval in pvals:
+        #             p.write(str(pval)+'\n')
 
     return collapsed, Pks, rpb_up, fdr
+
+if __name__ == '__main__':
+
+    entry1_1 = bed.BedEntry('X', 8000, 9000)
+    entry1_1.signalValue = 10
+    entry1_2 = bed.BedEntry('X', 80, 900)
+    entry1_2.signalValue = 2
+    bed1 = bed.BedFile([entry1_1, entry1_2])
+    entry2 = bed.BedEntry('X', 8500, 9000)
+    entry2.signalValue = 10
+    bed2 = bed.BedFile([entry2])
+    entry3 = bed.BedEntry('X', 7500, 9000)
+    entry3.signalValue = 10
+    bed3 = bed.BedFile([entry3])
+
+    bedf = [bed1, bed2, bed3]
+    minentries = 1
+
+    unions = union([bed1, bed2, bed3], 1)
+    for fragment in unions[0]:
+        print(fragment)
+
+    # First create intersection and rank the entries in each replicate and return the rankproduct values
+    ranks = rankreps(bedf, minentries, rankmethod='signalValue')
+
+    # Calculate rank product for each entry that contributes to a union entry
+    # Calculate the pvalues of the rank product values
+    print('Calculating rank product probabilities...')
+    rpb_up = rankprodbounds(ranks[1], len(ranks[1]), len(bedf), 'geometric')
+    print('Calculating binomial threshold...')
+    # Calculate rpb and binomial intersection point
+    Pks = thresholdCalc(rpb_up, k=len(bedf) - (minentries - 1))
+    if len(Pks[2]) != 0:
+        binomAlpha = round(min(Pks[2]), 3)
+    else:
+        print('No binomial convergence, defaulting to 0.1')
+        binomAlpha = 0.1
+    # print('Binomial threshold:'+str(binomAlpha))
+    # rpb_up = scale_values(rpb_up, binomAlpha)
+    # Perform multiple hypothesis testing correction upon the pvals
+    fdr = multipletesting.fdrcorrection(rpb_up)
+
+    # Determine whether to remove entries that are called significant
+    print('Cleaning up output...')
+    for i, v in enumerate(ranks[0][0]):
+        p = rpb_up[i]
+
+        if p != 0.0:
+            ranks[0][0][i].addOption(name='TBD',
+                                     score=min([abs(int(125 * math.log2(rpb_up[i]))), 1000]),
+                                     strand='.',
+                                     pValue=rpb_up[i],
+                                     qValue=fdr[1][i])
+        else:
+            ranks[0][0][i].addOption(name='TBD',
+                                     score=1000,
+                                     strand='.',
+                                     pValue=2.5e-20,
+                                     qValue=2.5e-20)
+    collapsed = bed.BedFile(ranks[0][0], 'IDR')
+    len1 = len(collapsed)
+
+    connected = connect_entries(collapsed, bedf, 20, True)
+    for ent in connected:
+        print(ent)

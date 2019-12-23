@@ -1783,19 +1783,23 @@ if __name__ == '__main__':
     entry3_2.signalValue = 3
     bed3 = bed.BedFile([entry3_1, entry3_2])
 
-    entry4_1 = bed.BedEntry('X', 7500, 8999)
+    entry4_1 = bed.BedEntry('X', 5000, 8999)
     entry4_2 = bed.BedEntry('X', 80, 900)
 
     entry4_1.signalValue = 10
     entry4_2.signalValue = 3
     bed4 = bed.BedFile([entry4_1, entry4_2])
 
-    bedf = [bed1, bed2, bed3, bed4]
-    minentries = 2
-
     unions = union([bed1, bed2, bed3, bed4], 2)
     for fragment in unions[0]:
         print(fragment)
+
+    med1 = bed.BedFile("test/data/med/med1_peaks.broadPeak", "Peaks").getChrom("chr17")
+    med2 = bed.BedFile("test/data/med/med2_peaks.broadPeak", "Peaks").getChrom("chr17")
+    med3 = bed.BedFile("test/data/med/med3_peaks.broadPeak", "Peaks").getChrom("chr17")
+
+    bedf = [med1, med2, med3]
+    minentries = 2
 
     # First create intersection and rank the entries in each replicate and return the rankproduct values
     ranks = rankreps(bedf, minentries, rankmethod='signalValue')
@@ -1843,3 +1847,25 @@ if __name__ == '__main__':
     connected = connect_entries(collapsed, bedf, 20, True)
     for ent in connected:
         print(ent)
+
+    performrankprod(bedf, minentries=2, rankmethod="pvalue", specifyMax=None,
+                    duphandling='average', random_seed=0.5,
+                    alpha=0.05,
+                    filename="test_unions",
+                    default_min_peak=20,
+                    print_pvals=True,
+                    broadpeaks=True)
+
+    med1 = bed.BedFile("test/data/med/med1_peaks.broadPeak", "Peaks")
+    med2 = bed.BedFile("test/data/med/med2_peaks.broadPeak", "Peaks")
+    med3 = bed.BedFile("test/data/med/med3_peaks.broadPeak", "Peaks")
+
+    bedf = [med1, med2, med3]
+
+    performrankprod(bedf, minentries=2, rankmethod="pvalue", specifyMax=None,
+                    duphandling='average', random_seed=0.5,
+                    alpha=0.05,
+                    filename="test_unions_allchrom",
+                    default_min_peak=20,
+                    print_pvals=True,
+                    broadpeaks=True)

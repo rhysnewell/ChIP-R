@@ -518,6 +518,15 @@ class BedFile:
                 for entry in e.values:
                     yield entry
 
+    def getChrom(self, chrom):
+        mytree = self.chroms.get(chrom)
+        entries = []
+        if mytree != None:
+            for e in mytree:
+                for entry in e.values:
+                    entries.append(entry)
+        return BedFile(entries, self.format)
+
     def __iter__(self):
         self.chromqueue = ival.Stack()
         for c in sorted(self.chroms.keys())[::-1]:
@@ -1052,26 +1061,26 @@ def writeBedFile(entries, filename, format = 'BED6', header = None):
     f.close()
 
 
-# if __name__ == '__main__':
-#     bf = BedFile('/Users/mikael/binfpy/BIOL3014/Week7/mm10_genes.bed', 'optional')
-#     print(bf.chroms.keys())
-#     g = bf.generate('chr1')
-#     print(next(g))
-#     print(next(g))
-#     print(next(g))
-#     cnt = 0
-#     for entry in bf:
-#         cnt += 1
-#         print(str(cnt) + '\t' + str(entry))
-#         if cnt == 100:
-#             break
-#     entry1 = BedEntry('chrX', 3858266, 3858530)
-#     print(entry1 in bf)
-#     entry2 = BedEntry('chrX', 10047550, 10067694)
-#     for x in bf.getOverlap(entry2):
-#         print(x)
-#     entry3 = BedEntry('chr9', 102699903, 102700167)
-#     for x in bf.getClosest(entry3):
-#         print(x)
-#         for y in x:
-#             print(y)
+if __name__ == '__main__':
+    bf = BedFile("test/data/med/med1_peaks.broadPeak", "Peaks")
+    print(bf.chroms.keys())
+    g = bf.generate('chr1')
+    print(next(g))
+    print(next(g))
+    print(next(g))
+    cnt = 0
+    for entry in bf:
+        cnt += 1
+        print(str(cnt) + '\t' + str(entry))
+        if cnt == 100:
+            break
+    entry1 = BedEntry('chrX', 3858266, 3858530)
+    print(entry1 in bf)
+    entry2 = BedEntry('chrX', 10047550, 10067694)
+    for x in bf.getOverlap(entry2):
+        print(x)
+    entry3 = BedEntry('chr9', 102699903, 102700167)
+    for x in bf.getClosest(entry3):
+        print(x)
+        for y in x:
+            print(y)

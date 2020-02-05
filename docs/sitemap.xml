@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+  xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  
+  <url>
+    <loc>ChIP-R/docs/</loc>
+    <lastmod>2018-11-28T15:14:39+10:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>ChIP-R/docs/install-hugo/</loc>
+    <lastmod>2019-02-11T19:27:37+10:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>ChIP-R/docs/install-theme/</loc>
+    <lastmod>2019-02-11T19:27:37+10:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>ChIP-R/docs/configure/</loc>
+    <lastmod>2019-02-11T19:30:08+10:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>ChIP-R/docs/specimen/</loc>
+    <lastmod>2019-02-11T19:27:37+10:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>ChIP-R/docs/example/</loc>
+    <lastmod>2019-02-11T19:27:37+10:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>ChIP-R/</loc>
+    <lastmod>2018-11-28T15:14:39+10:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>ChIP-R/categories/</loc>
+  </url>
+  
+  <url>
+    <loc>ChIP-R/tags/</loc>
+  </url>
+  
+</urlset>

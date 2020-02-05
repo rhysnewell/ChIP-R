@@ -1664,6 +1664,7 @@ def performrankprod(bedf, minentries=2, rankmethod="signalvalue", specifyMax=Non
                     default_min_peak=20,
                     print_pvals=True,
                     broadpeaks=False):
+    print("Using broadpeaks:", broadpeaks)
 
     # First create intersection and rank the entries in each replicate and return the rankproduct values
     ranks = rankreps(bedf, minentries, rankmethod, duphandling, random_seed, specifyMax)
@@ -1865,7 +1866,15 @@ if __name__ == '__main__':
     performrankprod(bedf, minentries=2, rankmethod="pvalue", specifyMax=None,
                     duphandling='average', random_seed=0.5,
                     alpha=0.05,
-                    filename="test_unions_allchrom",
+                    filename="test_broadpeaks_true",
                     default_min_peak=20,
                     print_pvals=True,
                     broadpeaks=True)
+
+    performrankprod(bedf, minentries=2, rankmethod="pvalue", specifyMax=None,
+                    duphandling='average', random_seed=0.5,
+                    alpha=0.05,
+                    filename="test_broadpeaks_false",
+                    default_min_peak=20,
+                    print_pvals=True,
+                    broadpeaks=False)

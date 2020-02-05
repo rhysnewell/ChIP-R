@@ -48,6 +48,7 @@ class RankProdAnalysis(object):
                             default='signalvalue',
                             type=str,
                             required=False)
+        parser.set_defaults(broadpeaks=False)
         parser.add_argument("--broadpeaks",
                             help="Specifies whether the input peaks are broad",
                             dest="broadpeaks",
@@ -108,6 +109,7 @@ class RankProdAnalysis(object):
                                  args.alpha,
                                  args.output,
                                  args.size,
+                                 False,
                                  args.broadpeaks)
 
 

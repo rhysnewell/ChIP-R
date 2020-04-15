@@ -1237,23 +1237,6 @@ def union(bedfiles, minentries=2, maxdist=2):
     return unions, entries
 
 
-def wrapper(func, *args):
-    def wrapped():
-        return func(*args)
-
-    return wrapped
-
-
-def getsigadjpvals(pvals, alpha=0.05, method='h'):
-    arr = multipletesting.multipletests(pvals, alpha=alpha, method=method)
-    sig_p = arr[0].tolist()
-    idxs = []
-    for idx in range(len(sig_p)):
-        if sig_p[idx] is True:
-            idxs.append(idx)
-    return idxs
-
-
 def overlaps(ent1, ent2, buffer=0):
     """
     Overlaps:
@@ -1632,30 +1615,6 @@ def calcLowerBound(reps, chosen, default_min_peak=20, broadpeaks=False):
 
     return lowerbound
 
-def rerankBed(bedfs):
-    for bedf in bedfs:
-        values = [e.signalValue for e in bedf]
-        ranks = len(values) - scipy.stats.rankdata(values) + 1
-        for (rank_v, bedent) in zip(ranks, bedf):
-            bedent.rank = rank_v
-
-def scale_values(pvals, binom_alpha):
-    scaled_vals = []
-    pvals = np.array(pvals)
-    print(pvals)
-    bmin = min(pvals[pvals <= binom_alpha])
-    bmax = max(pvals[pvals <= binom_alpha])
-    rmin = min(pvals[pvals > binom_alpha])
-    rmax = max(pvals[pvals > binom_alpha])
-    for val in pvals:
-        if val <= binom_alpha:
-            scaled_val = ((val - bmin)/(bmax-bmin))*(0.05)
-            scaled_vals.append(scaled_val)
-        else:
-            scaled_val = ((val - rmin) / (rmax - rmin)) * (0.95) + 0.05
-            scaled_vals.append(scaled_val)
-    return scaled_vals
-
 
 def performrankprod(bedf, minentries=2, rankmethod="signalvalue", specifyMax=None,
                     duphandling='average', random_seed=0.5,
@@ -1663,8 +1622,8 @@ def performrankprod(bedf, minentries=2, rankmethod="signalvalue", specifyMax=Non
                     filename="bedfile_unions.bed",
                     default_min_peak=20,
                     print_pvals=True,
-                    broadpeaks=False):
-    print("Using broadpeaks:", broadpeaks)
+                    fragment=False):
+    print("Using high fragmentation:", fragment)
 
     # First create intersection and rank the entries in each replicate and return the rankproduct values
     ranks = rankreps(bedf, minentries, rankmethod, duphandling, random_seed, specifyMax)
@@ -1681,8 +1640,7 @@ def performrankprod(bedf, minentries=2, rankmethod="signalvalue", specifyMax=Non
     else:
         print('No binomial convergence, defaulting to 0.1')
         binomAlpha = 0.1
-    # print('Binomial threshold:'+str(binomAlpha))
-    # rpb_up = scale_values(rpb_up, binomAlpha)
+
     # Perform multiple hypothesis testing correction upon the pvals
     fdr = multipletesting.fdrcorrection(rpb_up)
 
@@ -1706,7 +1664,7 @@ def performrankprod(bedf, minentries=2, rankmethod="signalvalue", specifyMax=Non
     collapsed = bed.BedFile(ranks[0][0], 'IDR')
     len1 = len(collapsed)
 
-    collapsed = connect_entries(collapsed, bedf, default_min_peak, broadpeaks)
+    collapsed = connect_entries(collapsed, bedf, default_min_peak, fragment)
 
     t3cnt = 0
     t1_unions = []
@@ -1855,7 +1813,7 @@ if __name__ == '__main__':
                     filename="test_unions",
                     default_min_peak=20,
                     print_pvals=True,
-                    broadpeaks=True)
+                    fragment=True)
 
     med1 = bed.BedFile("test/data/med/med1_peaks.broadPeak", "Peaks")
     med2 = bed.BedFile("test/data/med/med2_peaks.broadPeak", "Peaks")
@@ -1869,7 +1827,7 @@ if __name__ == '__main__':
                     filename="test_broadpeaks_true",
                     default_min_peak=20,
                     print_pvals=True,
-                    broadpeaks=True)
+                    fragment=True)
 
     performrankprod(bedf, minentries=2, rankmethod="pvalue", specifyMax=None,
                     duphandling='average', random_seed=0.5,
@@ -1877,4 +1835,4 @@ if __name__ == '__main__':
                     filename="test_broadpeaks_false",
                     default_min_peak=20,
                     print_pvals=True,
-                    broadpeaks=False)
+                    fragment=False)

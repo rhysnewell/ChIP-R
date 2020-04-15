@@ -1,4 +1,4 @@
-from chipr import ival, bigbed
+from chipr import ival
 import numpy as np
 """
 Defines class for reading BED entries in the form of BED Paired End entries
@@ -459,20 +459,16 @@ class BedFile:
 
     """
 
-    def __init__(self, entries, format = 'Limited', bigBed=False):
+    def __init__(self, entries, format = 'Limited'):
         """
         Create a BedFile instance.
         :param entries: an iterable of entries or a filename
         :param format: the format of the BED file
         """
         self.format = format
-        if bigBed:
-            self.chroms = bigbed.readBigBed(entries)
-        elif isinstance(entries, str): # filename
-            try:
-                self.chroms = readBedFile(entries, format)
-            except UnicodeDecodeError:
-                self.chroms = bigbed.readBigBed(entries)
+
+        if isinstance(entries, str): # filename
+            self.chroms = readBedFile(entries, format)
         else:
             self.chroms = dict()
             if format.lower().startswith('bedpe'):

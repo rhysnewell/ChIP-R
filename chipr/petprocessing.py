@@ -4,6 +4,9 @@ import numpy as np
 from chipr import rankprod
 from chipr import multipletesting
 
+"""
+Dead code soon to be deleted
+"""
 def verifyChIAPeaks(chiaData, chipData, filename, alpha):
     listinters = []
     PETs = []
@@ -80,75 +83,21 @@ def verifyChIAPeaks(chiaData, chipData, filename, alpha):
     pets2 = []
     ainters = []
     tags = 0
-    # for bin in range(1, 50):
-    #     pets = []
-    #     lints = []
-    #     ps = []
-    #     ds = []
-    #     # rp = []
-    #     for idx, j in enumerate(np.digitize(dists, bins)):
-    #         if j == bin:
-    #             pets.append(PETs[idx])
-    #             lints.append(listinters[idx])
-    #             ps.append(probcor[idx])
-    #             ds.append(dists[idx])
-                # rp.append(RP[idx])
-        # try:
-        #     pets, lints, ps, ds, rp = (list(x) for x in zip(*sorted(zip(pets, lints, ps, ds, rp),
-        #                                                                  key=lambda pair: pair[0], reverse=True)))
-        # except ValueError:
-        #     continue
-        #
+
     n = len(RP)
         # k = sum(pets)
     t = sum(PETs)
         # brobs = []
     tags = 0
-        # RPranks = scipy.stats.rankdata(RP)
-        # mRPrank = max(RPranks)
-        # RPranks1 = [mRPrank+1 - x for x in RPranks]
-        # probranks = scipy.stats.rankdata(probcor)
-        # mprobs = max(probranks)
-        # probranks1 = [mprobs+1 -x for x in probranks]
-        # # distranks = scipy.stats.rankdata(dists)
-        # # mdist = max(distranks)
-        # # distranks1 = [mdist+1 - x for x in distranks]
-        # # PETranks1 = scipy.stats.rankdata(PETs)
-        # # mpet = max(PETranks1)
-        # rankprods = []
-        # # PETranks = [mpet + 1 - x for x in PETranks1]
-        # PETdists = [x/y for x,y in zip(dists, PETs)]
-        # PDranks = scipy.stats.rankdata(PETdists)
-        # mPD = max(PDranks)
-        # PDranks1 = [mPD+1 - x for x in PDranks]
-        # for rank in range(len(RP)):
-        #     print(PDranks[rank], PETdists[rank])
-        #     try:
-        #         rankprods.append(PDranks1[rank]*RPranks1[rank])
-        #         pets2.append(PETs[rank])
-        #     except IndexError:
-        #         continue
-        # print(rankprods)
-        # rpb = rankprodbounds(rankprods, len(rankprods), 2, 'geometric')
-        # for p in rpb:
-        #     brobs.append(p)
-        # print(rpb)
-        # mRP = max(rankprods)
-        # mPETs = max(PETs)
-        # mdists = max(dists)
+
     for i, p in enumerate(zip(probcor, PETs)):
         tags += p[1]
         b = scipy.stats.binom.cdf(tags, t, 1-p[0])
-        # b2 = scipy.stats.combine_pvalues([b, [i]], 'stouffer', [(mPETs-PETs[i])/mPETs, (mRP-rankprods[i])/mRP])
         print(p[0], p[1])
         brobs.append(b)
         pets2.append(p[1])
         ints.append(listinters[i])
-    #     # secinters = []
-    #     # secPETs = []
-    #     # secprobcor = []
-    #     print(rpb)
-    # ints, probs = (list(x) for x in zip(*sorted(zip(ainters, probs), key=lambda pair: pair[1], reverse=False)))
+
     corrected = multipletesting.fdrcorrection(brobs, alpha)
     thresh = rankprod.thresholdCalc(brobs)
     try:
@@ -168,29 +117,6 @@ def verifyChIAPeaks(chiaData, chipData, filename, alpha):
             if p == 0:
                 i.addOption(pValue=0.00000000000001)
             fdr.append(i)
-
-
-                # else:
-                #     secinters.append(i)
-                #     secPETs.append(pet)
-                #     secprobcor.append(pc)
-
-    # n = sum(secPETs)
-    # brobs = []
-    # tags = 0
-    # for i, p in zip(secPETs, secprobcor):
-    #     tags += i
-    #     b = scipy.stats.binom.cdf(tags, n, p)
-    #     brobs.append(b)
-    #
-    # corrected = multipletesting.fdrcorrection(brobs, alpha)
-    # for i, p in zip(listinters, brobs):
-    #     i.addOption(pValue=p)
-    #     if p <= alpha:
-    #         if p == 0:
-    #             i.addOption(pValue=0.00000000000001)
-    #         fdr.append(i)
-
 
     fdr = bed.BedFile(fdr, "BEDPE")
     allinters = bed.BedFile(ainters, "BEDPE")

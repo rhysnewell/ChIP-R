@@ -26,11 +26,6 @@ class RankProdAnalysis(object):
                             type=str,
                             default="rankprod",
                             required=False)
-        parser.add_argument("-B", "--bigbed",
-                            help="Specify if input files are in BigBed format. "
-                                 "Note: This flag is no longer required as format is auto-detected",
-                            dest="bigbed",
-                            action="store_true")
         parser.set_defaults(bigbed=False)
         parser.add_argument("-m", "--minentries",
                             help="The minimum peaks between replicates required to form an "
@@ -49,9 +44,9 @@ class RankProdAnalysis(object):
                             type=str,
                             required=False)
         parser.set_defaults(broadpeaks=False)
-        parser.add_argument("--broadpeaks",
-                            help="Specifies whether the input peaks are broad",
-                            dest="broadpeaks",
+        parser.add_argument("--fragment",
+                            help="Specifies whether the input peaks will be subject to high levels of fragmentation",
+                            dest="fragment",
                             action="store_true",
                             required=False)
         parser.add_argument("--duphandling",
@@ -98,7 +93,7 @@ class RankProdAnalysis(object):
 
         print('Processing Input...')
 
-        bedfs = [bed.BedFile(str(i.name), 'Peaks', bigBed=args.bigbed) for i in args.input]
+        bedfs = [bed.BedFile(str(i.name), 'Peaks') for i in args.input]
 
         rankprod.performrankprod(bedfs,
                                  args.minentries,
@@ -110,7 +105,7 @@ class RankProdAnalysis(object):
                                  args.output,
                                  args.size,
                                  False,
-                                 args.broadpeaks)
+                                 args.fragment)
 
 
 

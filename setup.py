@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setup(
     name='ChIP-R',
-    version='1.1.9',
+    version='1.1.10',
     author='Rhys Newell, Mikael Boden, Alex Essebier',
     author_email='r.newell@uq.edu.au',
     packages=find_packages(),
@@ -13,7 +13,7 @@ setup(
     long_description_content_type="text/markdown",
     long_description=long_description,
     scripts=['bin/chipr'],
-    install_requires = ['scipy', 'numpy', 'pyBigWig'],
+    install_requires = ['scipy', 'numpy'],
     entry_points={
         'console_scripts': [
         'chipr=chipr.__main__:main',

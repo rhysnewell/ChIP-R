@@ -139,18 +139,18 @@ def rankBed(bedf, rankmethod='signalvalue'):
         svals = []
         # rep = union(bf, minentries=1)[0]
         zcount = 0
-        logged = True
+        logged = False
         for peak in rep:
             try:
                 if rankmethod.lower().startswith('signalvalue'):
                     svals.append(peak.signalValue)
                 elif rankmethod.lower().startswith('pvalue'):
                     svals.append(peak.pValue)
-                    if peak.pValue < 1:
-                        logged = False
+                    if peak.pValue > 1:
+                        logged = True
                 elif rankmethod.lower().startswith('qvalue'):
-                    if peak.qValue < 1:
-                        logged = False
+                    if peak.qValue > 1:
+                        logged = True
             except AttributeError:
                 zcount += 1
                 if logged:
@@ -1675,16 +1675,16 @@ def performrankprod(bedf, minentries=2, rankmethod="signalvalue", specifyMax=Non
     for i, v in enumerate(collapsed):
         """
         Determine what tier each union falls under
-        Tier 1 - Union with significance score <= alpha
+        Tier 1 - Union with significance score <= alpha ~~~~~~ OLD ~~~~~~~
 
-        Tier 2 - Union with significance score <= binomAlpha.
+        primary - Union with significance score <= binomAlpha.
                  These are unions that the binomial threshold calculation has deemed to be significant.
 
-        Tier 3 - Union that does not meet requirements for previous Tiers.
+        secondary - Union that does not meet requirements for previous Tiers.
                  Should not be discarded as its peaks still appear in majority of replicates.
         """
         pvals.append(v.pValue)
-        if v.pValue <= alpha:
+        if v.pValue <= binomAlpha:
             v.addOption(name='primary_peak_' + str(i),
                         strand='.')
             t1_unions.append(v)
@@ -1700,13 +1700,11 @@ def performrankprod(bedf, minentries=2, rankmethod="signalvalue", specifyMax=Non
 
     sortedUnions = [x for _, x in sorted(zip(pvals, collapsed), key = lambda pair:pair[0])]
     print(round((len(t1_unions)/len(collapsed))*100, 2), "% Primary peaks")
-    # print(round((len(t2_unions)/len(collapsed))*100, 2), "% Tier 2 intersections")
     print(round((t3cnt/len(collapsed))*100, 2), "% Secondary peaks")
 
     if filename is not None:
         bed.writeBedFile(sortedUnions, filename + "_all.bed", format="Peaks")
         bed.writeBedFile(t1_unions, filename + "_optimal.bed", format="Peaks")
-        # bed.writeBedFile(t1_unions + t2_unions, filename + "_T2.bed", format="Peaks")
         mets = bed.BedFile(sortedUnions).getMetrics()
         with open(filename+'_log.txt', 'w') as f:
             f.write('Primary Peaks: '+str(len(t1_unions))+'\n'+
@@ -1715,10 +1713,6 @@ def performrankprod(bedf, minentries=2, rankmethod="signalvalue", specifyMax=Non
             f.write('\n Chromosome'+'\t mean peak size\t standard deviation: \n')
             for k, v in mets.items():
                 f.write(k+'\t'+str(v[0])+'\t'+str(v[1])+'\n')
-        # if print_pvals:
-        #     with open(filename+"_pvals.txt", 'w') as p:
-        #         for pval in pvals:
-        #             p.write(str(pval)+'\n')
 
     return collapsed, Pks, rpb_up, fdr
 

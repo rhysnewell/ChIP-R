@@ -660,23 +660,32 @@ class BedFile:
     def getMetrics(self):
         chroms = self.chroms.keys()
         metrics = {}
+        all_widths = []
         for chr in chroms:
             chromarray = self.generate(chr)
             entry = next(chromarray, 0)
             widthlist = []
             while entry != 0:
                 widthlist.append(entry.chromEnd - entry.chromStart)
+                all_widths.append(entry.chromEnd - entry.chromStart)
                 entry = next(chromarray, 0)
 
             std = np.std(widthlist)
             widthmean = np.mean(widthlist)
-            abdiff = []
+            # abdiff = []
             m = np.median(widthlist)
-            for j in widthlist:
-                abdiff.append(abs(j - m))
-            MAD = np.median(abdiff)
+            # Median Absolute Deviation is not necessary
+            # for j in widthlist:
+            #     abdiff.append(abs(j - m))
+            # MAD = np.median(abdiff)
 
-            metrics[chr] = [widthmean, std, m, MAD]
+            metrics[chr] = [widthmean, std, m]
+        # Stats for all peaks
+        std = np.std(all_widths)
+        widthmean = np.mean(all_widths)
+        m = np.median(all_widths)
+        metrics['total'] = [widthmean, std, m]
+
         return metrics
 
     def poolBED(self, bedfile):

@@ -40,7 +40,7 @@ class RankProdAnalysis(object):
                                  "Options: 'signalvalue', 'pvalue', 'qvalue'. \n"
                                  "Default: pvalue",
                             dest="rankmethod",
-                            default='signalvalue',
+                            default='pvalue',
                             type=str,
                             required=False)
         parser.set_defaults(broadpeaks=False)

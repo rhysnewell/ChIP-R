@@ -486,23 +486,25 @@ def rankprodbounds(rho, n, k, Delta):
             thisG = [thisG[0] + i for i in rhoparam]
             thisG = list(iterflatten(thisG))
 
-            mat_thisparam2 = np.matrix(thisparam[2])
-            mat_thisrho = np.matrix(thisrho)
+            mat_thisparam2 = np.asarray(thisparam[2]).reshape((1, len(thisparam[2])))
+            mat_thisrho = np.asarray(thisrho).reshape((1, len(thisrho)))
 
+            # print(mat_thisparam2.shape)
+            # print(mat_thisrho.shape)
             d1 = np.dot(mat_thisparam2.T, mat_thisrho)
             log_thisrho = []
             for x in thisrho:
                 if x != 0:
                     log_thisrho.append(math.log(x))
 
-            log_thisrho = np.matrix(log_thisrho)
+            log_thisrho = np.asarray(log_thisrho).reshape((1, len(log_thisrho)))
             logn_thisparam1 = [logn * (k - j + x) for x in thisparam[1]]
             logn_thisparam1 = list(iterflatten(logn_thisparam1))
 
-            mat_thisparam1 = np.matrix(logn_thisparam1)
-            d2 = np.matrix(np.tile(log_thisrho, (nterms, 1))) - np.matrix(np.tile(mat_thisparam1, (nrho, 1))).T
-            mat_thisparam0 = np.matrix(thisparam[0]).T
-            d3 = np.matrix(np.tile(mat_thisparam0, nrho))
+            mat_thisparam1 = np.asarray(logn_thisparam1).reshape((1, len(logn_thisparam1)))
+            d2 = np.tile(log_thisrho, (nterms, 1)) - np.tile(mat_thisparam1, (nrho, 1)).T
+            mat_thisparam0 = np.asarray(thisparam[0]).reshape((1, len(thisparam[0]))).T
+            d3 = np.tile(mat_thisparam0, nrho)
             d2_expd3 = np.power(d2, d3)
 
             mats = np.multiply(d1, d2_expd3)
@@ -1715,118 +1717,3 @@ def performrankprod(bedf, minentries=2, rankmethod="signalvalue", specifyMax=Non
                 f.write(k+'\t'+str(v[0])+'\t'+str(v[1])+'\n')
 
     return collapsed, Pks, rpb_up, fdr
-
-if __name__ == '__main__':
-
-    entry1_1 = bed.BedEntry('X', 8000, 9000)
-    entry1_1.signalValue = 10
-    entry1_2 = bed.BedEntry('X', 80, 900)
-    entry1_2.signalValue = 3
-    bed1 = bed.BedFile([entry1_1, entry1_2])
-
-    entry2_1 = bed.BedEntry('X', 8500, 9000)
-    entry2_2 = bed.BedEntry('X', 80, 900)
-    entry2_1.signalValue = 10
-    entry2_2.signalValue = 3
-    bed2 = bed.BedFile([entry2_1, entry2_2])
-
-    entry3_1 = bed.BedEntry('X', 7500, 9000)
-    entry3_2 = bed.BedEntry('X', 80, 900)
-    entry3_1.signalValue = 10
-    entry3_2.signalValue = 3
-    bed3 = bed.BedFile([entry3_1, entry3_2])
-
-    entry4_1 = bed.BedEntry('X', 5000, 8999)
-    entry4_2 = bed.BedEntry('X', 80, 900)
-
-    entry4_1.signalValue = 10
-    entry4_2.signalValue = 3
-    bed4 = bed.BedFile([entry4_1, entry4_2])
-
-    unions = union([bed1, bed2, bed3, bed4], 2)
-    for fragment in unions[0]:
-        print(fragment)
-
-    med1 = bed.BedFile("test/data/med/med1_peaks.broadPeak", "Peaks").getChrom("chr17")
-    med2 = bed.BedFile("test/data/med/med2_peaks.broadPeak", "Peaks").getChrom("chr17")
-    med3 = bed.BedFile("test/data/med/med3_peaks.broadPeak", "Peaks").getChrom("chr17")
-
-    bedf = [med1, med2, med3]
-    minentries = 2
-
-    # First create intersection and rank the entries in each replicate and return the rankproduct values
-    ranks = rankreps(bedf, minentries, rankmethod='signalValue')
-
-    # Calculate rank product for each entry that contributes to a union entry
-    # Calculate the pvalues of the rank product values
-    print('Calculating rank product probabilities...')
-    rpb_up = rankprodbounds(ranks[1], len(ranks[1]), len(bedf), 'geometric')
-    print('Calculating binomial threshold...')
-    # Calculate rpb and binomial intersection point
-    Pks = thresholdCalc(rpb_up, k=len(bedf) - (minentries - 1))
-    if len(Pks[2]) != 0:
-        binomAlpha = round(min(Pks[2]), 3)
-    else:
-        print('No binomial convergence, defaulting to 0.1')
-        binomAlpha = 0.1
-    # print('Binomial threshold:'+str(binomAlpha))
-    # rpb_up = scale_values(rpb_up, binomAlpha)
-    # Perform multiple hypothesis testing correction upon the pvals
-    fdr = multipletesting.fdrcorrection(rpb_up)
-
-    # Determine whether to remove entries that are called significant
-    print('Cleaning up output...')
-    for i, v in enumerate(ranks[0][0]):
-        p = rpb_up[i]
-
-        if p != 0.0:
-            ranks[0][0][i].addOption(name='TBD',
-                                     score=min([abs(int(125 * math.log2(rpb_up[i]))), 1000]),
-                                     strand='.',
-                                     pValue=rpb_up[i],
-                                     qValue=fdr[1][i])
-        else:
-            ranks[0][0][i].addOption(name='TBD',
-                                     score=1000,
-                                     strand='.',
-                                     pValue=2.5e-20,
-                                     qValue=2.5e-20)
-    collapsed = bed.BedFile(ranks[0][0], 'IDR')
-    for ent in collapsed:
-        print(ent)
-
-    len1 = len(collapsed)
-
-    connected = connect_entries(collapsed, bedf, 20, True)
-    for ent in connected:
-        print(ent)
-
-    performrankprod(bedf, minentries=2, rankmethod="pvalue", specifyMax=None,
-                    duphandling='average', random_seed=0.5,
-                    alpha=0.05,
-                    filename="test_unions",
-                    default_min_peak=20,
-                    print_pvals=True,
-                    fragment=True)
-
-    med1 = bed.BedFile("test/data/med/med1_peaks.broadPeak", "Peaks")
-    med2 = bed.BedFile("test/data/med/med2_peaks.broadPeak", "Peaks")
-    med3 = bed.BedFile("test/data/med/med3_peaks.broadPeak", "Peaks")
-
-    bedf = [med1, med2, med3]
-
-    performrankprod(bedf, minentries=2, rankmethod="pvalue", specifyMax=None,
-                    duphandling='average', random_seed=0.5,
-                    alpha=0.05,
-                    filename="test_broadpeaks_true",
-                    default_min_peak=20,
-                    print_pvals=True,
-                    fragment=True)
-
-    performrankprod(bedf, minentries=2, rankmethod="pvalue", specifyMax=None,
-                    duphandling='average', random_seed=0.5,
-                    alpha=0.05,
-                    filename="test_broadpeaks_false",
-                    default_min_peak=20,
-                    print_pvals=True,
-                    fragment=False)

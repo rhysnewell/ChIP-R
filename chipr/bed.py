@@ -1064,28 +1064,3 @@ def writeBedFile(entries, filename, format = 'BED6', header = None):
                     (row.chrom, row.chromStart, row.chromEnd, row.name, row.score, row.strand))
         f.write("\n")
     f.close()
-
-
-if __name__ == '__main__':
-    bf = BedFile("test/data/med/med1_peaks.broadPeak", "Peaks")
-    print(bf.chroms.keys())
-    g = bf.generate('chr1')
-    print(next(g))
-    print(next(g))
-    print(next(g))
-    cnt = 0
-    for entry in bf:
-        cnt += 1
-        print(str(cnt) + '\t' + str(entry))
-        if cnt == 100:
-            break
-    entry1 = BedEntry('chrX', 3858266, 3858530)
-    print(entry1 in bf)
-    entry2 = BedEntry('chrX', 10047550, 10067694)
-    for x in bf.getOverlap(entry2):
-        print(x)
-    entry3 = BedEntry('chr9', 102699903, 102700167)
-    for x in bf.getClosest(entry3):
-        print(x)
-        for y in x:
-            print(y)

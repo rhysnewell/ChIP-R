@@ -9,7 +9,6 @@ Install
 - [Python3.x](https://www.python.org/getit/) with the following packages:
 - Numpy
 - Scipy
-- pyBigWig
 
 To install ChIP-R:
     
@@ -25,6 +24,40 @@ OR if you want to install from source:
 
 Usage
 -----
+
+ChIP-R requires only a single input type: A set of any number of BED file regions. Typically the output of peak calling from 
+ChIP-seq peak calling on transcription factor or histone mark samples. Alternatively, ChIP-R can also be used on 
+ATAC-seq peaks to retrieve reproducible peaks across ATAC-seq experiments.
+
+
+#### Input
+
+The input BED files must follow ENCODE narrowPeak or broadPeak format specifications. Typically, this format is the default
+for peak callers such as MACS2. 
+
+#### Peak calling
+
+ChIP-R is compatible with the output peaks for any peak caller as long as the output is in the correct narrowPeak or broadPeak
+format. Additionally, there is no need to call peaks with relaxed thresholds when using your chosen peak caller as is the suggested
+by IDR.
+
+#### Parameters
+
+ChIP-R is fairly light on parameters that need to be chosen by the user. A couple of options that users may want to play with is
+`minentries` and `size`. 
+
+`minentries` determines the number of peak overlaps required to start calling a peak "reproducible". 
+The default of 2 typically provides the best results in our benchmarks but there may be a case where a user requires 
+ChIP-R to call peaks within a much stricter window.
+
+`size` determines the minimum peak size during peak output. Transcription factors generally want more punctate peaks, and 
+so the default value of 20 may be sufficient. However, histone marks may require a much larger value be set for this depending
+on how broad you expect the histone mark to be. Generally, if you find ChIP-R produces too many small noisy peaks then this 
+value can be increased to filter them out.
+
+Example
+------
+    $ chipr -i sample1.bed sample2.bed sample3.bed sample4.bed -m 2 -o output_prefix   
 
 In the command line, type in **'chipr -h '** for detailed usage.
 
@@ -45,7 +78,6 @@ In the command line, type in **'chipr -h '** for detailed usage.
                             inputs are separeted by a single space
       -o OUTPUT, --output OUTPUT
                             ChIP-seq output filename prefix
-      -B, --bigbed          Specify if input files are in BigBed format
       -m MINENTRIES, --minentries MINENTRIES
                             The minimum peaks between replicates required to form
                             an intersection of the peaks Default: 1
@@ -66,13 +98,17 @@ In the command line, type in **'chipr -h '** for detailed usage.
                             Alpha specifies the user cut-off value for set of
                             reproducible peaks The analysis will still produce
                             results including peaks within the threshold
-                            calculatedusing the binomial method Default: 0.05
+                            calculated using the binomial method Default: 0.05
+      -s SIZE, --size SIZE  Sets the default minimum peak size when peaks are
+                            reconnected after fragmentation. Usually the minimum
+                            peak size is determined by the size of surrounding
+                            peaks, but in the case that there are no surrounding
+                            peaks this value will be used Default: 20
 
 
 
-Example
-------
-    $ chipr -i input_prefix1.bed input_prefix2.bed input_prefix3.bed input_prefix4.bed -m 2 -o output_prefix   
+
+
 
 Output
 ------
@@ -95,6 +131,8 @@ prefixname.bed file has 10 columns. The output follows the standard peak format 
 Citation
 --------
 
+**Preprint available on bioarxiv**
+https://www.biorxiv.org/content/10.1101/2020.11.24.396960v1
 
 
 
@@ -103,4 +141,4 @@ Contact
 
 Authors: Rhys Newell, Michael Piper, Mikael Boden, Alexandra Essebier
 
-Contact:  rhys.newell(AT)uq.edu.au
+Contact:  rhys.newell(AT)hdr.qut.edu.au

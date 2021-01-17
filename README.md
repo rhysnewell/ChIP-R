@@ -10,11 +10,20 @@ Install
 - Numpy
 - Scipy
 
-To install ChIP-R:
+Installation for ChIP-R has been made easy with a range of different install methods available. Installing via any of 
+these options will handle all dependencies for you as well.
+
+#### Option 1: via Conda
+
+    conda install chip-r
+
+#### Option 2: via PyPi
     
     pip install ChIP-R
-    
-OR if you want to install from source:
+
+#### Option 3: from source
+
+If you want to install from source:
 
     git clone https://github.com/rhysnewell/ChIP-R.git
     cd ChIP-R
@@ -106,9 +115,21 @@ In the command line, type in **'chipr -h '** for detailed usage.
                             peaks this value will be used Default: 20
 
 
+#### Entrypoints
 
+I get that the naming convention for ChIP-R kind of sucks, and have to remember the capital letters and the hyphen can
+be frustrating as such you can call ChIP-R from three different entrypoints:
+    
+    # Easiest
+    chipr -h
+    
+    # Lowercase
+    chip-r -h
+    
+    # Hard mode
+    ChIP-R -h
 
-
+I learned my lesson when naming programs and will never do this again. My apologies :P
 
 Output
 ------

@@ -7,7 +7,7 @@ setup(
     name='ChIP-R',
     version='1.2.0',
     author='Rhys Newell, Mikael Boden, Alex Essebier',
-    author_email='r.newell@uq.edu.au',
+    author_email='rhys.newell@hdr.qut.edu.au',
     packages=find_packages(),
     license='GPL-3.0',
     long_description_content_type="text/markdown",
@@ -17,7 +17,8 @@ setup(
     entry_points={
         'console_scripts': [
         'chipr=chipr.__main__:main',
-        'ChIP-R=chipr.__main__:main'
+        'ChIP-R=chipr.__main__:main',
+        'chip-r=chipr.__main__:main'
         ]
     },
     python_requires='>=3',
